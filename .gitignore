@@ -1,0 +1,28 @@
+# Default ignored files
+/shelf/
+/.idea/workspace.xml
+# WebStorm / JetBrains IDE config directories
+.idea/
+*.iml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Ignored default folder with query files
+/queries/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+# Dependency directories (Never commit node_modules)
+node_modules/
+client/node_modules/
+server/node_modules/
+# Local environment variables containing private API keys and tokens
+.env
+.env.local
+.env.development.local
+# OS files
+.DS_Store
+Thumbs.db
+# Build outputs
+dist/
+build/
+.next/
