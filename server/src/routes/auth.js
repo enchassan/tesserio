@@ -41,4 +41,19 @@ router.get('/logout', (req, res) => {
     res.status(200).json({ status: 'success', message: 'Session successfully terminated' });
 });
 
+// Add this to server/src/routes/auth.js
+
+// Import the guard middleware we just wrote at the top of the file
+const { requireAuth } = require('../middleware/auth');
+
+// @desc    Get Current Logged-In User Profile State
+// @route   GET /api/auth/me
+// @access  Private (Guarded by requireAuth)
+router.get('/me', requireAuth, (req, res) => {
+    res.status(200).json({
+        status: 'success',
+        user: req.user
+    });
+});
+
 module.exports = router;
