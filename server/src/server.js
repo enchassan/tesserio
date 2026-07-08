@@ -4,15 +4,17 @@ const dotenv = require('dotenv')
 const cors = require('cors')
 const helmet = require('helmet')
 const cookieParser = require('cookie-parser')
-const connectDB = require('./config/db')
 
 // Load Environment Variables
 dotenv.config();
 
 //Connect to Database
-connectDB();
+const connectDB = require('./config/db');
 
 const app = express();
+
+// Execute the function
+connectDB();
 
 // Security & Parsing Middleware
 app.use(helmet());
