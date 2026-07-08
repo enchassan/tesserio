@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const passport = require('passport'); // 1. Pull in passport core
+const pinRoutes = require('./routes/pins');
 
 // Load Environment Variables First
 dotenv.config();
@@ -31,6 +32,7 @@ app.use(passport.initialize()); // 3. Mount Passport runtime stream
 // Mount Auth Handshake Routers
 const authRoutes = require('./routes/auth'); // 4. Pull in your routes module
 app.use('/api/auth', authRoutes); // 5. Bind routing paths
+app.use('/api/pins', pinRoutes);
 
 // Base Health Route
 app.get('/api/health', (req, res) => {
