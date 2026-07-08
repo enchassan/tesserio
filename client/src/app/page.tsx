@@ -1,24 +1,24 @@
 // client/src/app/page.tsx
-export default function HomePage() {
-  return (
-      <main className="min-h-screen p-8 max-w-[1800px] mx-auto">
-        <header className="mb-12 border-b border-brand-surface pb-6">
-          <h1 className="text-3xl font-bold tracking-wider font-mono text-white">
-            TESSERIO
-          </h1>
-          <p className="text-brand-muted text-sm mt-2">
-            Visual Discovery & Media Graph Platform
-          </p>
-        </header>
+import { MasonryGrid } from "@/components/Feed/MasonryGrid";
 
-        <section className="flex flex-col items-center justify-center border-2 border-dashed border-brand-surface rounded-2xl h-[60vh]">
-          <div className="text-center space-y-2">
-            <p className="text-xl font-medium text-white">Masonry Canvas Base</p>
-            <p className="text-brand-muted text-sm max-w-md">
-              Next.js core environment loaded successfully. Standing by for dynamic pipeline integration.
-            </p>
-          </div>
-        </section>
-      </main>
-  );
+export default function HomePage() {
+    return (
+        <main className="min-h-screen p-4 sm:p-8 max-w-[1800px] mx-auto bg-brand-bg text-foreground">
+            <header className="mb-8 border-b border-brand-surface pb-6 flex items-center justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-wider font-mono text-white">
+                        TESSER<span className="text-brand-accent">IO</span>
+                    </h1>
+                    <p className="text-brand-muted text-xs mt-1">
+                        Visual Discovery & Media Graph Platform
+                    </p>
+                </div>
+            </header>
+
+            {/* Render the core masonry interface layout canvas */}
+            <section className="w-full">
+                <MasonryGrid />
+            </section>
+        </main>
+    );
 }

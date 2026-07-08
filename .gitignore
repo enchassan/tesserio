@@ -1,31 +1,64 @@
-# Default ignored files
-/shelf/
-/.idea/workspace.xml
-# WebStorm / JetBrains IDE config directories
+# WebStorm / JetBrains IDE configs
 .idea/
 *.iml
-# Editor-based HTTP Client requests
+/shelf/
 /httpRequests/
-# Ignored default folder with query files
 /queries/
-# Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
-# Dependency directories (Never commit node_modules)
-node_modules/
-client/node_modules/
-server/node_modules/
-# Local environment variables containing private API keys and tokens
-.env
-.env.local
-.env.development.local
+
 # OS files
 .DS_Store
 Thumbs.db
-# Build outputs
+
+# Environment Secrets
+.env
+server/.env
+client/.env
+client/.env*.local
+
+# Core Dependencies (Monorepo Paths)
+node_modules/
+client/node_modules/
+server/node_modules/
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js Build Outputs (Monorepo Paths)
 dist/
 build/
-.next/
+/coverage/
+.vercel/
+client/.vercel/
+client/.next/
+client/out/
+*.tsbuildinfo
 
+# Local Logs & AI Agent Context files
 client/AGENTS.md
 client/CLAUDE.md
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Default ignored files
+/.idea/workspace.xml
+
+# next.js
+/.next/
+/out/
+
+# misc
+*.pem
+
+# debug
+.pnpm-debug.log*
+
+# typescript
+next-env.d.ts
