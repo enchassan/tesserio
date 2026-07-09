@@ -56,7 +56,9 @@ export default function HomePage() {
                     {/* Action Trigger button visible exclusively to logged-in profiles */}
                     {user && (
                         <button
-                            onClick={() => setIsModalOpen(true)}
+                            onClick={() => {
+                                setIsModalOpen(true);
+                            }}
                             className="bg-white/5 hover:bg-white/10 text-white font-medium text-xs px-4 py-2 rounded-full border border-white/10 transition-colors"
                         >
                             + Create Pin
