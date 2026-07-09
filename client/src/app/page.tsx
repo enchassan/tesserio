@@ -41,8 +41,8 @@ export default function HomePage() {
     };
 
     return (
-        <main className="min-h-screen p-4 sm:p-8 max-w-[1800px] mx-auto bg-brand-bg text-foreground">
-            <header className="mb-8 border-b border-brand-surface pb-6 flex items-center justify-between">
+        <main className="w-full min-h-screen p-4 sm:p-8 bg-brand-bg text-foreground flex flex-col justify-start items-stretch">
+            <header className="w-full mb-8 border-b border-brand-surface pb-6 flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold tracking-wider font-mono text-white">
                         TESSER<span className="text-brand-accent">IO</span>
@@ -53,13 +53,10 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    {/* Action Trigger button visible exclusively to logged-in profiles */}
                     {user && (
                         <button
-                            onClick={() => {
-                                setIsModalOpen(true);
-                            }}
-                            className="bg-white/5 hover:bg-white/10 text-white font-medium text-xs px-4 py-2 rounded-full border border-white/10 transition-colors"
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-white/5 hover:bg-white/10 text-white font-medium text-xs px-4 py-2 rounded-full border border-white/10 transition-colors cursor-pointer"
                         >
                             + Create Pin
                         </button>
@@ -70,7 +67,6 @@ export default function HomePage() {
                     ) : user ? (
                         <div className="flex items-center gap-3 bg-brand-surface/40 px-4 py-2 rounded-full border border-brand-surface">
                             {user.avatar && (
-                                // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                     src={user.avatar}
                                     alt={user.name}
@@ -93,11 +89,11 @@ export default function HomePage() {
                 </div>
             </header>
 
-            <section className="w-full">
+            {/* CRITICAL CHANGE HERE: Ensure this section layout doesn't pinch or center contain items */}
+            <section className="w-full text-left block clear-both grow">
                 <MasonryGrid key={refreshKey} />
             </section>
 
-            {/* Render overlay configuration instance */}
             <CreatePinModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
