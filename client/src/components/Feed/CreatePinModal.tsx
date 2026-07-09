@@ -1,4 +1,4 @@
-~// client/src/components/Feed/CreatePinModal.tsx
+// client/src/components/Feed/CreatePinModal.tsx
 'use client';
 
 import React, { useState } from 'react';

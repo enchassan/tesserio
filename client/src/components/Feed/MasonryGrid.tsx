@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
-import { PinCard } from './PinCard'; // Ensure this matches your pin card file name exactly
+import { PinCard } from './PinCard';
 
 interface PinAsset {
     _id: string;
@@ -17,7 +17,12 @@ interface PinAsset {
     };
 }
 
-export const MasonryGrid: React.FC = () => {
+// 1. Update the component interface props to accept an onSelect handler from page.tsx
+interface MasonryGridProps {
+    onSelectPin: (pin: any) => void;
+}
+
+export const MasonryGrid: React.FC<MasonryGridProps> = ({ onSelectPin }) => {
     const [pins, setPins] = useState<PinAsset[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -67,6 +72,14 @@ export const MasonryGrid: React.FC = () => {
                             aspectRatio={pin.aspectRatio}
                             creatorName={pin.user?.name || 'Anonymous Creator'}
                             creatorAvatar={pin.user?.avatar || ''}
+                            // 2. Pass down a combined proxy object when the user clicks the card shell
+                            onClick={() => onSelectPin({
+                                title: pin.title,
+                                description: pin.description,
+                                mediaUrl: pin.mediaUrl,
+                                creatorName: pin.user?.name || 'Anonymous Creator',
+                                creatorAvatar: pin.user?.avatar || ''
+                            })}
                         />
                     </div>
                 ))}

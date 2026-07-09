@@ -8,6 +8,7 @@ interface PinCardProps {
     aspectRatio: number;
     creatorName: string;
     creatorAvatar: string;
+    onClick: () => void; // Add explicit function signature
 }
 
 export const PinCard: React.FC<PinCardProps> = ({
@@ -16,19 +17,22 @@ export const PinCard: React.FC<PinCardProps> = ({
                                                     mediaUrl,
                                                     aspectRatio,
                                                     creatorName,
-                                                    creatorAvatar
+                                                    creatorAvatar,
+                                                    onClick
                                                 }) => {
 
-    // Directly provide an absolute height fallback to override style anomalies
     const getInlineHeight = () => {
-        if (aspectRatio > 1.2) return '192px';      // Short (h-48 equivalent)
-        if (aspectRatio > 0.9 && aspectRatio < 1.1) return '288px'; // Square (h-72 equivalent)
-        return '420px';                             // Tall (h-[420px] equivalent)
+        if (aspectRatio > 1.2) return '192px';
+        if (aspectRatio > 0.9 && aspectRatio < 1.1) return '288px';
+        return '420px';
     };
 
     return (
-        <div className="break-inside-avoid mb-4 group relative overflow-hidden rounded-2xl bg-brand-surface cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/5 w-full">
-            {/* Enforce layout using a standard inline style property */}
+        // Add the interactive execution binding directly to the outer container layout frame:
+        <div
+            onClick={onClick}
+            className="break-inside-avoid mb-4 group relative overflow-hidden rounded-2xl bg-brand-surface cursor-zoom-in transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/5 w-full"
+        >
             <div
                 style={{ height: getInlineHeight() }}
                 className="w-full relative bg-neutral-900 overflow-hidden"
@@ -44,7 +48,14 @@ export const PinCard: React.FC<PinCardProps> = ({
                 {/* Hover Interaction Layer */}
                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-between z-10">
                     <div className="flex justify-end">
-                        <button className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1.5 rounded-full text-xs shadow transition-colors cursor-pointer">
+                        {/* Click event handling stop propagation so pressing save doesn't trigger open modal */}
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                alert('Save action context pipeline ready!');
+                            }}
+                            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1.5 rounded-full text-xs shadow transition-colors cursor-pointer"
+                        >
                             Save
                         </button>
                     </div>
@@ -55,7 +66,6 @@ export const PinCard: React.FC<PinCardProps> = ({
                             {description && <p className="text-xs text-brand-muted truncate mt-0.5">{description}</p>}
                         </div>
 
-                        {/* Live Creator Badge Profile Context */}
                         <div className="flex items-center gap-2 pt-1 border-t border-white/10">
                             {creatorAvatar && (
                                 // eslint-disable-next-line @next/next/no-img-element

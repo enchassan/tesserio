@@ -4,7 +4,8 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { MasonryGrid } from "@/components/Feed/MasonryGrid";
-import { CreatePinModal } from "@/components/Feed/CreatePinModal"; // Import Modal
+import { CreatePinModal } from "@/components/Feed/CreatePinModal";
+import { InspectPinModal } from "@/components/Feed/InspectPinModal";
 
 interface UserProfile {
     _id: string;
@@ -17,7 +18,9 @@ export default function HomePage() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-    const [refreshKey, setRefreshKey] = useState<number>(0); // Incremented to force components update
+    const [refreshKey, setRefreshKey] = useState<number>(0);
+    const [selectedPin, setSelectedPin] = useState<any>(null);
+    const [isInspectOpen, setIsInspectOpen] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchUserSession = async () => {
@@ -91,13 +94,28 @@ export default function HomePage() {
 
             {/* CRITICAL CHANGE HERE: Ensure this section layout doesn't pinch or center contain items */}
             <section className="w-full text-left block clear-both grow">
-                <MasonryGrid key={refreshKey} />
+                <MasonryGrid
+                    key={refreshKey}
+                    onSelectPin={(pin) => {
+                        setSelectedPin(pin);
+                        setIsInspectOpen(true);
+                    }}
+                />
             </section>
 
             <CreatePinModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onPinCreated={handleRefreshFeed}
+            />
+
+            <InspectPinModal
+                isOpen={isInspectOpen}
+                onClose={() => {
+                    setIsInspectOpen(false);
+                    setSelectedPin(null);
+                }}
+                pin={selectedPin}
             />
         </main>
     );
