@@ -31,21 +31,24 @@ export const CreatePinModal: React.FC<CreatePinModalProps> = ({ isOpen, onClose,
         setError('');
 
         try {
+            // Direct POST to our clean Express router endpoint
             const response = await api.post('/pins', {
                 title,
                 description,
                 mediaUrl,
-                aspectRatio,
+                aspectRatio, // This sends the selected layout ratio metric (1.33, 1, or 0.66)
                 mediaType: 'image'
             });
 
             if (response.data.status === 'success') {
+                // Clear all local field states on success
                 setTitle('');
                 setDescription('');
                 setMediaUrl('');
                 setAspectRatio(1);
-                onPinCreated(); // Dynamic callback to refresh main masonry feed stream
-                onClose();
+
+                onPinCreated(); // Signals parent dashboard view to trigger update
+                onClose();      // Closes the modal smoothly
             }
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to publish new pin asset.');
