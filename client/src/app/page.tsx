@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { MasonryGrid } from "@/components/Feed/MasonryGrid";
+import { CreatePinModal } from "@/components/Feed/CreatePinModal"; // Import Modal
 
 interface UserProfile {
     _id: string;
@@ -15,6 +16,8 @@ interface UserProfile {
 export default function HomePage() {
     const [user, setUser] = useState<UserProfile | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
+    const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+    const [refreshKey, setRefreshKey] = useState<number>(0); // Incremented to force components update
 
     useEffect(() => {
         const fetchUserSession = async () => {
@@ -33,6 +36,10 @@ export default function HomePage() {
         fetchUserSession();
     }, []);
 
+    const handleRefreshFeed = () => {
+        setRefreshKey(prev => prev + 1); // Trigger hook reload once we switch mock items for live endpoints next
+    };
+
     return (
         <main className="min-h-screen p-4 sm:p-8 max-w-[1800px] mx-auto bg-brand-bg text-foreground">
             <header className="mb-8 border-b border-brand-surface pb-6 flex items-center justify-between">
@@ -45,8 +52,17 @@ export default function HomePage() {
                     </p>
                 </div>
 
-                {/* Dynamic User Profile Status Bar */}
                 <div className="flex items-center gap-4">
+                    {/* Action Trigger button visible exclusively to logged-in profiles */}
+                    {user && (
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-white/5 hover:bg-white/10 text-white font-medium text-xs px-4 py-2 rounded-full border border-white/10 transition-colors"
+                        >
+                            + Create Pin
+                        </button>
+                    )}
+
                     {loading ? (
                         <div className="w-8 h-8 rounded-full bg-brand-surface animate-pulse" />
                     ) : user ? (
@@ -75,10 +91,16 @@ export default function HomePage() {
                 </div>
             </header>
 
-            {/* Render the core masonry interface layout canvas */}
             <section className="w-full">
-                <MasonryGrid />
+                <MasonryGrid key={refreshKey} />
             </section>
+
+            {/* Render overlay configuration instance */}
+            <CreatePinModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onPinCreated={handleRefreshFeed}
+            />
         </main>
     );
 }
