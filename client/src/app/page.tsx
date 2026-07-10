@@ -116,6 +116,14 @@ export default function HomePage() {
                     setSelectedPin(null);
                 }}
                 pin={selectedPin}
+                // CRITICAL ADDITION: Update the stale state snapshot in the feed line immediately
+                onCommentAdded={(pinId, updatedComments) => {
+                    // If you are managing a local state for pins here, update it directly:
+                    // setPins(prev => prev.map(p => p._id === pinId ? { ...p, comments: updatedComments } : p));
+
+                    // Or if you are using a trigger key to force data syncs:
+                    handleRefreshFeed();
+                }}
             />
         </main>
     );

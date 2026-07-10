@@ -46,15 +46,23 @@ const PinSchema = new mongoose.Schema({
         ref: 'User', // Links the Pin back to its original creator
         required: true
     },
-    likes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User' // Array of user IDs who liked the pin, allowing quick .length counts
-    }],
-    comments: [CommentSchema], // Nested sub-document array for lightweight, high-performance comment streaming
-    saveCount: {
-        type: Number,
-        default: 0 // Monitored integer that increments when added to a user's board
-    }
+    comments: [{
+        user: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        text: {
+            type: String,
+            required: true,
+            trim: true,
+            maxlength: 500
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 }, {
     timestamps: true
 });

@@ -43,12 +43,55 @@ router.get('/', async (req, res) => {
         // Fetch pins and populate user reference fields (excluding sensitive credentials)
         const pins = await Pin.find()
             .populate('user', 'name avatar email')
-            .sort({ createdAt: -1 }); // Newest items first
+            .populate('comments.user', 'name avatar')
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             status: 'success',
             results: pins.length,
             pins
+        });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
+// @desc    Add a comment to a pin node asset
+// @route   POST /api/pins/:id/comments
+// @access  Private
+router.post('/:id/comments', requireAuth, async (req, res) => {
+    try {
+        const pinId = req.params.id;
+        const { text } = req.body;
+
+        if (!text || !text.trim()) {
+            return res.status(400).json({ status: 'fail', message: 'Comment text cannot be empty node frames.' });
+        }
+
+        // 1. Find the target pin asset document
+        const pin = await Pin.findById(pinId);
+        if (!pin) {
+            return res.status(404).json({ status: 'fail', message: 'Target pin node asset not found.' });
+        }
+
+        // 2. Construct the single comment structural model object
+        const newComment = {
+            user: req.user._id, // User bound from requireAuth session
+            text: text.trim()
+        };
+
+        // 3. Push to array and persist to Atlas cluster
+        pin.comments.push(newComment);
+        await pin.save();
+
+        // 4. Fetch the full fresh comment tree and populate user fields for instantaneous frontend update
+        const updatedPin = await Pin.findById(pinId)
+            .populate('comments.user', 'name avatar');
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Comment node safely committed to media graph.',
+            comments: updatedPin.comments
         });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });

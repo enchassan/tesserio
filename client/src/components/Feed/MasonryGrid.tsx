@@ -15,6 +15,16 @@ interface PinAsset {
         name: string;
         avatar: string;
     };
+    comments?: Array<{
+        _id?: string;
+        user: {
+            _id: string;
+            name: string;
+            avatar: string;
+        };
+        text: string;
+        createdAt: string;
+    }>;
 }
 
 // 1. Update the component interface props to accept an onSelect handler from page.tsx
@@ -66,6 +76,7 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({ onSelectPin }) => {
                 {pins.map((pin) => (
                     <div key={pin._id} className="w-full h-full block">
                         <PinCard
+                            id={pin._id}
                             title={pin.title}
                             description={pin.description || ''}
                             mediaUrl={pin.mediaUrl}
@@ -74,11 +85,13 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({ onSelectPin }) => {
                             creatorAvatar={pin.user?.avatar || ''}
                             // 2. Pass down a combined proxy object when the user clicks the card shell
                             onClick={() => onSelectPin({
+                                id: pin._id,
                                 title: pin.title,
                                 description: pin.description,
                                 mediaUrl: pin.mediaUrl,
                                 creatorName: pin.user?.name || 'Anonymous Creator',
-                                creatorAvatar: pin.user?.avatar || ''
+                                creatorAvatar: pin.user?.avatar || '',
+                                comments: pin.comments || []
                             })}
                         />
                     </div>
