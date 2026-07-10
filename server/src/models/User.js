@@ -36,7 +36,11 @@ const UserSchema = new mongoose.Schema({
     following: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }]
+    }],
+    savedPins: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Pin' // Make sure this matches your Pin model's registration name exactly
+    }],
 }, {
     timestamps: true // Automatically generates createdAt and updatedAt fields
 });
