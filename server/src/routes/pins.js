@@ -155,5 +155,37 @@ router.post('/:id/save', requireAuth, async (req, res) => {
         });
     }
 });
+// @desc    Get All Pins Saved By The Authenticated User
+// @route   GET /api/pins/saved
+// @access  Private
+router.get('/saved', requireAuth, async (req, res) => {
+    try {
+        // 1. Fetch the active user and populate their array of saved pin documents
+        const userWithSavedPins = await User.findById(req.user._id)
+            .populate({
+                path: 'savedPins',
+                options: { sort: { createdAt: -1 } }, // Newest bookmarks first
+                populate: {
+                    path: 'user',
+                    select: 'name avatar email' // Populate the original pin creator's info too!
+                }
+            });
+
+        if (!userWithSavedPins) {
+            return res.status(404).json({ 
+                status: 'fail', 
+                message: 'Active profile node not resolved.' 
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            results: userWithSavedPins.savedPins.length,
+            pins: userWithSavedPins.savedPins
+        });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
 
 module.exports = router;
