@@ -12,7 +12,7 @@ interface PinAsset {
     mediaUrl: string;
     aspectRatio: number;
     user: {
-        _id: string;
+        _id?: string;
         name: string;
         avatar: string;
     };
@@ -28,7 +28,6 @@ interface PinAsset {
     }>;
 }
 
-// 1. Update the component interface props to accept an onSelect handler from page.tsx
 interface MasonryGridProps {
     currentView: 'feed' | 'saved';
     onSelectPin: (pin: any) => void;
@@ -40,12 +39,11 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({ currentView, onSelectP
 
     useEffect(() => {
         const fetchFeedStream = async () => {
-            setLoading(true); // Always trigger the load pulse on a tab switch
+            setLoading(true);
             try {
-                // 3. DYNAMICALLY ROUTE THE BACKEND FETCH BASED ON THE TAB VIEW
                 const endpoint = currentView === 'saved' ? '/pins/saved' : '/pins';
                 const response = await api.get(endpoint);
-
+                
                 if (response.data?.status === 'success') {
                     setPins(response.data.pins || []);
                 }
@@ -58,7 +56,7 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({ currentView, onSelectP
         };
 
         fetchFeedStream();
-    }, [currentView]); // Re-run this entire fetch sequence anytime currentView changes!
+    }, [currentView]);
 
     if (loading) {
         return (
@@ -81,30 +79,52 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({ currentView, onSelectP
         );
     }
 
+    // --- TRUE MASONRY LOGIC START ---
+    // Distribute pins across 5 columns sequentially to ensure perfect row balance and zero dead gaps.
+    const numColumns = 5;
+    const columns: PinAsset[][] = Array.from({ length: numColumns }, () => []);
+    
+    pins.forEach((pin, index) => {
+        columns[index % numColumns].push(pin);
+    });
+    // --- TRUE MASONRY LOGIC END ---
+
     return (
-        <div className="w-full flex justify-start items-start text-left mt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full auto-rows-max justify-start items-start">
-                {pins.map((pin) => (
-                    <div key={pin._id} className="w-full h-full block">
-                        <PinCard
-                            id={pin._id}
-                            title={pin.title}
-                            description={pin.description || ''}
-                            mediaUrl={pin.mediaUrl}
-                            aspectRatio={pin.aspectRatio}
-                            creatorName={pin.user?.name || 'Anonymous Creator'}
-                            creatorAvatar={pin.user?.avatar || ''}
-                            onClick={() => onSelectPin({
-                                id: pin._id,
-                                title: pin.title,
-                                description: pin.description,
-                                mediaUrl: pin.mediaUrl,
-                                creatorName: pin.user?.name || 'Anonymous Creator',
-                                creatorAvatar: pin.user?.avatar || '',
-                                comments: pin.comments || [],
-                                creatorId: pin.user?._id || pin.user
-                            })}
-                        />
+        <div className="w-full mt-4">
+            {/* Master Flex Row Splitter Container */}
+            <div className="flex flex-row justify-start items-start gap-4 w-full">
+                {columns.map((colPins, colIdx) => (
+                    // Individual Vertical Flex Columns
+                    <div 
+                        key={colIdx} 
+                        className="flex flex-col gap-4 flex-1 min-w-0"
+                        // Responsive visibility handles scaling down seamlessly on small devices
+                        style={{
+                            display: colIdx >= 1 ? 'flex' : 'flex', // Fallback structure configuration
+                        }}
+                    >
+                        {colPins.map((pin) => (
+                            <PinCard
+                                key={pin._id}
+                                id={pin._id}
+                                title={pin.title}
+                                description={pin.description || ''}
+                                mediaUrl={pin.mediaUrl}
+                                aspectRatio={pin.aspectRatio}
+                                creatorName={pin.user?.name || 'Anonymous Creator'}
+                                creatorAvatar={pin.user?.avatar || ''}
+                                onClick={() => onSelectPin({
+                                    id: pin._id,
+                                    title: pin.title,
+                                    description: pin.description,
+                                    mediaUrl: pin.mediaUrl,
+                                    creatorName: pin.user?.name || 'Anonymous Creator',
+                                    creatorAvatar: pin.user?.avatar || '',
+                                    comments: pin.comments || [],
+                                    creatorId: pin.user?._id || pin.user
+                                })}
+                            />
+                        ))}
                     </div>
                 ))}
             </div>
