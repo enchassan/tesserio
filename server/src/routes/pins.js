@@ -188,4 +188,38 @@ router.get('/saved', requireAuth, async (req, res) => {
     }
 });
 
+// @desc    Delete an asset node pin
+// @route   DELETE /api/pins/:id
+// @access  Private (Owner Only)
+router.delete('/:id', requireAuth, async (req, res) => {
+    try {
+        const pinId = req.params.id;
+        const userId = req.user._id;
+
+        // 1. Fetch the target pin
+        const pin = await Pin.findById(pinId);
+        if (!pin) {
+            return res.status(404).json({ status: 'fail', message: 'Target asset node not found.' });
+        }
+
+        // 2. Security Boundary: Ensure the logged-in user is the owner who created it
+        if (pin.user.toString() !== userId.toString()) {
+            return res.status(403).json({
+                status: 'fail',
+                message: 'Unauthorized execution context. You can only delete pins you have published.'
+            });
+        }
+
+        // 3. Delete the document out of the database cluster collection
+        await Pin.findByIdAndDelete(pinId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Asset node permanently expunged from platform registry.'
+        });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
 module.exports = router;

@@ -1,7 +1,7 @@
 // client/src/app/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { MasonryGrid } from "@/components/Feed/MasonryGrid";
 import { CreatePinModal } from "@/components/Feed/CreatePinModal";
@@ -16,11 +16,14 @@ interface UserProfile {
 
 export default function HomePage() {
     const [user, setUser] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [refreshKey, setRefreshKey] = useState<number>(0);
     const [selectedPin, setSelectedPin] = useState<any>(null);
     const [isInspectOpen, setIsInspectOpen] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(true); // Cleaned duplicate state declaration
+
+    // CRITICAL ADDITION: Track which tab workspace frame is currently active
+    const [activeTab, setActiveTab] = useState<'feed' | 'saved'>('feed');
 
     useEffect(() => {
         const fetchUserSession = async () => {
@@ -40,12 +43,12 @@ export default function HomePage() {
     }, []);
 
     const handleRefreshFeed = () => {
-        setRefreshKey(prev => prev + 1); // Trigger hook reload once we switch mock items for live endpoints next
+        setRefreshKey(prev => prev + 1); // Triggers re-fetch cascade across states
     };
 
     return (
         <main className="w-full min-h-screen p-4 sm:p-8 bg-brand-bg text-foreground flex flex-col justify-start items-stretch">
-            <header className="w-full mb-8 border-b border-brand-surface pb-6 flex items-center justify-between">
+            <header className="w-full mb-8 border-b border-brand-surface pb-6 flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
                 <div>
                     <h1 className="text-2xl font-bold tracking-wider font-mono text-white">
                         TESSER<span className="text-brand-accent">IO</span>
@@ -54,6 +57,32 @@ export default function HomePage() {
                         Visual Discovery & Media Graph Platform
                     </p>
                 </div>
+
+                {/* CRITICAL ADDITION: Premium Tab Filter Layout Switch for Authenticated Sessions */}
+                {user && (
+                    <div className="flex bg-white/5 p-1 rounded-full border border-white/5 font-mono text-xs orden-last sm:order-none">
+                        <button
+                            onClick={() => setActiveTab('feed')}
+                            className={`px-5 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
+                                activeTab === 'feed'
+                                    ? 'bg-brand-accent text-brand-bg shadow-md shadow-cyan-500/10'
+                                    : 'text-brand-muted hover:text-white'
+                            }`}
+                        >
+                            Global Feed
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('saved')}
+                            className={`px-5 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
+                                activeTab === 'saved'
+                                    ? 'bg-brand-accent text-brand-bg shadow-md shadow-cyan-500/10'
+                                    : 'text-brand-muted hover:text-white'
+                            }`}
+                        >
+                            Saved Deck
+                        </button>
+                    </div>
+                )}
 
                 <div className="flex items-center gap-4">
                     {user && (
@@ -71,9 +100,14 @@ export default function HomePage() {
                         <div className="flex items-center gap-3 bg-brand-surface/40 px-4 py-2 rounded-full border border-brand-surface">
                             {user.avatar && (
                                 <img
-                                    src={user.avatar}
+                                    src={user.avatar || `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`}
                                     alt={user.name}
-                                    className="w-8 h-8 rounded-full border border-brand-accent/40"
+                                    className="w-8 h-8 rounded-full border border-brand-accent/40 object-cover bg-neutral-900"
+                                    referrerPolicy="no-referrer" // CRITICAL FIX: Stops Google from blocking the image
+                                    onError={(e) => {
+                                        // Fallback to a generated initial-avatar if the Google link is permanently dead
+                                        (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`;
+                                    }}
                                 />
                             )}
                             <div className="text-right hidden sm:block">
@@ -92,10 +126,11 @@ export default function HomePage() {
                 </div>
             </header>
 
-            {/* CRITICAL CHANGE HERE: Ensure this section layout doesn't pinch or center contain items */}
+            {/* Main Grid Sector: Pass dynamic flags so the grid re-syncs on view transitions */}
             <section className="w-full text-left block clear-both grow">
                 <MasonryGrid
-                    key={refreshKey}
+                    key={`${refreshKey}-${activeTab}`} // Appending activeTab directly to the key triggers an instant refresh whenever a button is clicked!
+                    currentView={activeTab} // Pass the view parameter down to alter endpoints
                     onSelectPin={(pin) => {
                         setSelectedPin(pin);
                         setIsInspectOpen(true);
@@ -116,12 +151,9 @@ export default function HomePage() {
                     setSelectedPin(null);
                 }}
                 pin={selectedPin}
-                // CRITICAL ADDITION: Update the stale state snapshot in the feed line immediately
+                activeUserId={user?._id}
+                onPinDeleted={handleRefreshFeed}
                 onCommentAdded={(pinId, updatedComments) => {
-                    // If you are managing a local state for pins here, update it directly:
-                    // setPins(prev => prev.map(p => p._id === pinId ? { ...p, comments: updatedComments } : p));
-
-                    // Or if you are using a trigger key to force data syncs:
                     handleRefreshFeed();
                 }}
             />

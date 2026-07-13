@@ -18,6 +18,8 @@ interface CommentNode {
 interface InspectPinModalProps {
     isOpen: boolean;
     onClose: () => void;
+    activeUserId?: string;
+    onPinDeleted?: () => void;
     pin: {
         id: string;
         title: string;
@@ -25,12 +27,13 @@ interface InspectPinModalProps {
         mediaUrl: string;
         creatorName: string;
         creatorAvatar: string;
+        creatorId?: string;
         comments?: CommentNode[];
     } | null;
     onCommentAdded?: (pinId: string, updatedComments: CommentNode[]) => void;
 }
 
-export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClose, pin, onCommentAdded }) => {
+export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClose, activeUserId, onPinDeleted, pin, onCommentAdded }) => {
     const [commentStream, setCommentStream] = useState<CommentNode[]>([]);
     const [commentInput, setCommentInput] = useState<string>('');
     const [submitting, setSubmitting] = useState<boolean>(false);
@@ -43,7 +46,7 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClos
     }, [pin]);
 
     if (!isOpen || !pin) return null;
-
+    
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!commentInput.trim() || submitting) return;
@@ -65,6 +68,20 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClos
             console.error('Failed to register terminal comment node connection:', error);
         } finally {
             setSubmitting(false);
+        }
+    };
+    const handlePinDelete = async () => {
+        if (!pin || !window.confirm('Are you absolutely sure you want to permanently delete this pin asset?')) return;
+
+        try {
+            const response = await api.delete(`/pins/${pin.id}`);
+            if (response.data?.status === 'success') {
+            if (onPinDeleted) onPinDeleted(); // Notify main screen feed to wipe it from view array
+            onClose(); // Exit modal workspace frame
+            }
+        } catch (error) {
+            console.error('Failed to execute destruction pipeline:', error);
+            alert('Failed to delete pin asset node.');
         }
     };
 
@@ -119,6 +136,14 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClos
                             >
                                 ESC
                             </button>
+                            {pin.creatorId === activeUserId && (
+                            <button
+                                onClick={handlePinDelete}
+                                className="text-red-400 hover:text-red-500 font-mono text-[11px] font-bold px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-full border border-red-500/20 transition-all cursor-pointer uppercase mr-2"
+                            >
+                                Delete Pin
+                            </button>
+                            )}
                         </div>
 
                         {/* Core Typography Asset Details */}
