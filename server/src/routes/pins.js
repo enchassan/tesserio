@@ -222,4 +222,52 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
 });
 
+// @desc    Delete a comment from a pin node asset
+// @route   DELETE /api/pins/:id/comments/:commentId
+// @access  Private (Comment Author or Pin Owner Only)
+router.delete('/:id/comments/:commentId', requireAuth, async (req, res) => {
+    try {
+        const { id: pinId, commentId } = req.params;
+        const userId = req.user._id;
+
+        // 1. Locate the target pin document
+        const pin = await Pin.findById(pinId);
+        if (!pin) {
+            return res.status(404).json({ status: 'fail', message: 'Target pin node asset not found.' });
+        }
+
+        // 2. Find the nested comment sub-document
+        const comment = pin.comments.id(commentId);
+        if (!comment) {
+            return res.status(404).json({ status: 'fail', message: 'Target comment entry node not found.' });
+        }
+
+        // 3. Security Check: Must be the author of the comment OR the owner of the pin
+        const isCommentAuthor = comment.user.toString() === userId.toString();
+        const isPinOwner = pin.user.toString() === userId.toString();
+
+        if (!isCommentAuthor && !isPinOwner) {
+            return res.status(403).json({ 
+                status: 'fail', 
+                message: 'Unauthorized execution context. Permissions signature mismatch.' 
+            });
+        }
+
+        // 4. Remove the sub-document and save changes back to Atlas
+        comment.deleteOne();
+        await pin.save();
+
+        // 5. Fetch and populate the updated comment stream to push fresh snapshots to the client
+        const updatedPin = await Pin.findById(pinId).populate('comments.user', 'name avatar');
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Comment node safely expunged from platform log graph.',
+            comments: updatedPin.comments
+        });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
 module.exports = router;

@@ -84,6 +84,24 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClos
             alert('Failed to delete pin asset node.');
         }
     };
+    const handleCommentDelete = async (commentId: string) => {
+        if (!pin || !window.confirm('Remove this statement log from the stream?')) return;
+
+        try {
+            const response = await api.delete(`/pins/${pin.id}/comments/${commentId}`);
+            if (response.data?.status === 'success') {
+            setCommentStream(response.data.comments); // Update the local stream instantly
+            
+            // Notify the parent layout shell to update the background caching state frames
+            if (onCommentAdded) {
+                onCommentAdded(pin.id, response.data.comments);
+            }
+            }
+        } catch (error) {
+            console.error('Failed to dispatch comment erasure instruction:', error);
+            alert('Could not delete comment.');
+        }
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
@@ -177,14 +195,28 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClos
                                                     className="w-6 h-6 rounded-full border border-white/10 mt-0.5"
                                                 />
                                             )}
-                                            <div className="space-y-0.5 flex-1 min-w-0">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-[11px] font-bold text-white truncate">{cmt.user?.name || 'Contributor'}</span>
-                                                    <span className="text-[9px] font-mono text-white/40">
-                            {cmt.createdAt ? new Date(cmt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'NOW'}
-                          </span>
+                                            <div className="flex justify-between items-start w-full">
+                                                <div className="space-y-0.5 flex-1 min-w-0">
+                                                    <div className="flex justify-between items-center gap-2">
+                                                        <span className="text-[11px] font-bold text-white truncate">{cmt.user?.name || 'Contributor'}</span>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className="text-[9px] font-mono text-white/40">
+                                                            {cmt.createdAt ? new Date(cmt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'NOW'}
+                                                            </span>
+                                                            
+                                                            {/* CONDITIONAL ACTION BADGE: Render if active session ID matches comment creator ID or pin author ID */}
+                                                            {(cmt.user?._id === activeUserId || pin.creatorId === activeUserId) && (
+                                                            <button
+                                                                onClick={() => handleCommentDelete(cmt._id!)}
+                                                                className="text-[9px] font-mono font-bold text-red-400/60 hover:text-red-400 uppercase tracking-tight transition-colors bg-white/5 hover:bg-red-500/10 px-1.5 py-0.5 rounded cursor-pointer border border-white/5"
+                                                            >
+                                                                X
+                                                            </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-xs text-white/80 break-words font-sans mt-0.5">{cmt.text}</p>
                                                 </div>
-                                                <p className="text-xs text-white/80 break-words font-sans">{cmt.text}</p>
                                             </div>
                                         </div>
                                     ))
@@ -210,7 +242,6 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClos
                             {submitting ? '...' : 'Post'}
                         </button>
                     </form>
-
                 </div>
             </div>
         </div>
