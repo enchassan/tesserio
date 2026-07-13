@@ -1,249 +1,291 @@
 // client/src/components/Feed/InspectPinModal.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api } from '@/lib/api';
 
 interface CommentNode {
-    _id?: string;
-    user: {
-        _id: string;
-        name: string;
-        avatar: string;
-    };
-    text: string;
-    createdAt: string;
+  _id?: string;
+  user: {
+    _id: string;
+    name: string;
+    avatar: string;
+  };
+  text: string;
+  createdAt: string;
 }
 
 interface InspectPinModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    activeUserId?: string;
-    onPinDeleted?: () => void;
-    pin: {
-        id: string;
-        title: string;
-        description?: string;
-        mediaUrl: string;
-        creatorName: string;
-        creatorAvatar: string;
-        creatorId?: string;
-        comments?: CommentNode[];
-    } | null;
-    onCommentAdded?: (pinId: string, updatedComments: CommentNode[]) => void;
+  isOpen: boolean;
+  onClose: () => void;
+  activeUserId?: string;
+  onPinDeleted?: () => void;
+  pin: {
+    id: string;
+    title: string;
+    description?: string;
+    mediaUrl: string;
+    creatorName: string;
+    creatorAvatar: string;
+    creatorId?: string;
+    comments?: CommentNode[];
+  } | null;
+  onCommentAdded?: (pinId: string, updatedComments: CommentNode[]) => void;
 }
 
-export const InspectPinModal: React.FC<InspectPinModalProps> = ({ isOpen, onClose, activeUserId, onPinDeleted, pin, onCommentAdded }) => {
-    const [commentStream, setCommentStream] = useState<CommentNode[]>([]);
-    const [commentInput, setCommentInput] = useState<string>('');
-    const [submitting, setSubmitting] = useState<boolean>(false);
+export const InspectPinModal: React.FC<InspectPinModalProps> = ({ 
+  isOpen, 
+  onClose, 
+  pin,
+  activeUserId,
+  onPinDeleted,
+  onCommentAdded
+}) => {
+  const [commentStream, setCommentStream] = useState<CommentNode[]>([]);
+  const [commentInput, setCommentInput] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
+  
+  // States for the 3-dots options menu
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-    // Sync state cleanly whenever a brand-new pin selection frame maps into view
-    useEffect(() => {
-        if (pin) {
-            setCommentStream(pin.comments || []);
-        }
-    }, [pin]);
+  // Sync state cleanly whenever a brand new pin selection frame maps into view
+  useEffect(() => {
+    if (pin) {
+      setCommentStream(pin.comments || []);
+    }
+    setIsMenuOpen(false); // Reset menu state on pin change
+  }, [pin]);
 
-    if (!isOpen || !pin) return null;
-    
-    const handleCommentSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!commentInput.trim() || submitting) return;
-
-        setSubmitting(true);
-        try {
-            const response = await api.post(`/pins/${pin.id}/comments`, {
-                text: commentInput.trim()
-            });
-
-            if (response.data?.status === 'success') {
-                setCommentStream(response.data.comments); // Load populated array straight out of response data
-                setCommentInput(''); // Clear terminal input block
-            }
-            if (onCommentAdded) {
-                onCommentAdded(pin.id, response.data.comments);
-            }
-        } catch (error) {
-            console.error('Failed to register terminal comment node connection:', error);
-        } finally {
-            setSubmitting(false);
-        }
+  // Close dropdown menu if clicking outside of it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
     };
-    const handlePinDelete = async () => {
-        if (!pin || !window.confirm('Are you absolutely sure you want to permanently delete this pin asset?')) return;
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-        try {
-            const response = await api.delete(`/pins/${pin.id}`);
-            if (response.data?.status === 'success') {
-            if (onPinDeleted) onPinDeleted(); // Notify main screen feed to wipe it from view array
-            onClose(); // Exit modal workspace frame
-            }
-        } catch (error) {
-            console.error('Failed to execute destruction pipeline:', error);
-            alert('Failed to delete pin asset node.');
+  if (!isOpen || !pin) return null;
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentInput.trim() || submitting) return;
+
+    setSubmitting(true);
+    try {
+      const response = await api.post(`/pins/${pin.id}/comments`, {
+        text: commentInput.trim()
+      });
+
+      if (response.data?.status === 'success') {
+        setCommentStream(response.data.comments);
+        setCommentInput('');
+      }
+    } catch (error) {
+      console.error('Failed to register terminal comment node connection:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleCommentDelete = async (commentId: string) => {
+    if (!window.confirm('Remove this statement log from the stream?')) return;
+
+    try {
+      const response = await api.delete(`/pins/${pin.id}/comments/${commentId}`);
+      if (response.data?.status === 'success') {
+        setCommentStream(response.data.comments);
+        if (onCommentAdded) {
+          onCommentAdded(pin.id, response.data.comments);
         }
-    };
-    const handleCommentDelete = async (commentId: string) => {
-        if (!pin || !window.confirm('Remove this statement log from the stream?')) return;
+      }
+    } catch (error) {
+      console.error('Failed to dispatch comment erasure instruction:', error);
+    }
+  };
 
-        try {
-            const response = await api.delete(`/pins/${pin.id}/comments/${commentId}`);
-            if (response.data?.status === 'success') {
-            setCommentStream(response.data.comments); // Update the local stream instantly
-            
-            // Notify the parent layout shell to update the background caching state frames
-            if (onCommentAdded) {
-                onCommentAdded(pin.id, response.data.comments);
-            }
-            }
-        } catch (error) {
-            console.error('Failed to dispatch comment erasure instruction:', error);
-            alert('Could not delete comment.');
-        }
-    };
+  const handlePinDelete = async () => {
+    setIsMenuOpen(false);
+    if (!window.confirm('Are you absolutely sure you want to permanently delete this pin asset?')) return;
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
-            {/* Backdrop Blur Layer */}
-            <div
-                className="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity"
-                onClick={onClose}
-            />
+    try {
+      const response = await api.delete(`/pins/${pin.id}`);
+      if (response.data?.status === 'success') {
+        if (onPinDeleted) onPinDeleted();
+        onClose();
+      }
+    } catch (error) {
+      console.error('Failed to execute destruction pipeline:', error);
+      alert('Failed to delete pin asset node.');
+    }
+  };
 
-            {/* Main Inspect Container Deck */}
-            <div className="bg-brand-surface w-full max-w-5xl rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative z-10 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]">
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
+      {/* Backdrop Blur Layer */}
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity" onClick={onClose} />
 
-                {/* Left Panel: High-Fidelity Asset Viewport */}
-                <div className="w-full md:w-3/5 bg-neutral-950 flex items-center justify-center p-2 overflow-hidden max-h-[40vh] md:max-h-full">
-                    <img
-                        src={pin.mediaUrl.startsWith('http') ? pin.mediaUrl : `https://${pin.mediaUrl}`}
-                        alt={pin.title}
-                        className="w-full h-full object-contain max-h-[40vh] md:max-h-[80vh]"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800';
-                        }}
-                    />
-                </div>
-
-                {/* Right Panel: Content Meta & Interactions Terminal */}
-                <div className="w-full md:w-2/5 p-6 sm:p-8 flex flex-col justify-between overflow-hidden bg-[#151B22]">
-
-                    {/* Scrollable Upper Metadata Sector */}
-                    <div className="overflow-y-auto space-y-6 flex-1 pr-1">
-                        <div className="flex items-center justify-between">
-                            {/* Creator Context Badge */}
-                            <div className="flex items-center gap-3">
-                                {pin.creatorAvatar && (
-                                    <img
-                                        src={pin.creatorAvatar}
-                                        alt={pin.creatorName}
-                                        className="w-8 h-8 rounded-full border border-brand-accent/30"
-                                    />
-                                )}
-                                <div>
-                                    <p className="text-xs font-semibold text-white tracking-wide">{pin.creatorName}</p>
-                                    <p className="text-[10px] text-brand-muted font-mono">ASSET CONTRIBUTOR</p>
-                                </div>
-                            </div>
-
-                            {/* Close Button UI Component */}
-                            <button
-                                onClick={onClose}
-                                className="text-brand-muted hover:text-white transition-colors p-2 bg-white/5 rounded-full hover:bg-white/10 cursor-pointer text-xs font-mono"
-                            >
-                                ESC
-                            </button>
-                            {pin.creatorId === activeUserId && (
-                            <button
-                                onClick={handlePinDelete}
-                                className="text-red-400 hover:text-red-500 font-mono text-[11px] font-bold px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 rounded-full border border-red-500/20 transition-all cursor-pointer uppercase mr-2"
-                            >
-                                Delete Pin
-                            </button>
-                            )}
-                        </div>
-
-                        {/* Core Typography Asset Details */}
-                        <div className="space-y-2 pt-2">
-                            <h2 className="text-xl font-bold tracking-wider text-white uppercase font-mono border-b border-white/5 pb-3">
-                                {pin.title}
-                            </h2>
-                            <p className="text-xs text-brand-muted leading-relaxed font-sans pt-1">
-                                {pin.description || 'No descriptive structural metadata provided for this cluster asset node.'}
-                            </p>
-                        </div>
-
-                        {/* Live Interactive Comment Terminal Stream Feed */}
-                        <div className="pt-4 space-y-3">
-                            <h3 className="text-[11px] font-bold tracking-widest text-brand-accent font-mono uppercase">
-                                Activity Stream // {commentStream.length} Nodes
-                            </h3>
-
-                            <div className="space-y-3 max-h-[240px] overflow-y-auto pr-1">
-                                {commentStream.length === 0 ? (
-                                    <div className="text-[11px] font-mono p-4 rounded-xl border border-dashed border-white/10 bg-brand-bg/50 text-white/40 text-center py-6">
-                                        NO LOG ENTRY STREAM ENCOUNTERED // WRITE FIRST ENTRY
-                                    </div>
-                                ) : (
-                                    commentStream.map((cmt, idx) => (
-                                        <div key={cmt._id || idx} className="flex gap-3 bg-white/5 p-3 rounded-xl border border-white/5 items-start">
-                                            {cmt.user?.avatar && (
-                                                <img
-                                                    src={cmt.user.avatar}
-                                                    alt={cmt.user.name}
-                                                    className="w-6 h-6 rounded-full border border-white/10 mt-0.5"
-                                                />
-                                            )}
-                                            <div className="flex justify-between items-start w-full">
-                                                <div className="space-y-0.5 flex-1 min-w-0">
-                                                    <div className="flex justify-between items-center gap-2">
-                                                        <span className="text-[11px] font-bold text-white truncate">{cmt.user?.name || 'Contributor'}</span>
-                                                        <div className="flex items-center gap-2 shrink-0">
-                                                            <span className="text-[9px] font-mono text-white/40">
-                                                            {cmt.createdAt ? new Date(cmt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'NOW'}
-                                                            </span>
-                                                            
-                                                            {/* CONDITIONAL ACTION BADGE: Render if active session ID matches comment creator ID or pin author ID */}
-                                                            {(cmt.user?._id === activeUserId || pin.creatorId === activeUserId) && (
-                                                            <button
-                                                                onClick={() => handleCommentDelete(cmt._id!)}
-                                                                className="text-[9px] font-mono font-bold text-red-400/60 hover:text-red-400 uppercase tracking-tight transition-colors bg-white/5 hover:bg-red-500/10 px-1.5 py-0.5 rounded cursor-pointer border border-white/5"
-                                                            >
-                                                                X
-                                                            </button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <p className="text-xs text-white/80 break-words font-sans mt-0.5">{cmt.text}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Bottom Execution Component: Input Message Box Form */}
-                    <form onSubmit={handleCommentSubmit} className="pt-4 border-t border-white/5 mt-4 flex items-center gap-2">
-                        <input
-                            type="text"
-                            value={commentInput}
-                            onChange={(e) => setCommentInput(e.target.value)}
-                            placeholder="Inject statement node data..."
-                            className="flex-1 bg-brand-bg border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brand-accent font-mono"
-                        />
-                        <button
-                            type="submit"
-                            disabled={submitting || !commentInput.trim()}
-                            className="bg-white/5 hover:bg-brand-accent hover:text-brand-bg text-white font-mono text-[11px] font-bold px-4 py-2.5 rounded-xl border border-white/10 hover:border-brand-accent transition-all uppercase cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                            {submitting ? '...' : 'Post'}
-                        </button>
-                    </form>
-                </div>
-            </div>
+      {/* Main Inspect Container Deck */}
+      <div className="bg-brand-surface w-full max-w-5xl rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative z-10 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]">
+        
+        {/* Left Panel: High-Fidelity Asset Viewport */}
+        <div className="w-full md:w-3/5 bg-neutral-950 flex items-center justify-center p-2 overflow-hidden max-h-[40vh] md:max-h-full">
+          <img
+            src={pin.mediaUrl.startsWith('http') ? pin.mediaUrl : `https://${pin.mediaUrl}`}
+            alt={pin.title}
+            className="w-full h-full object-contain max-h-[40vh] md:max-h-[80vh]"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800';
+            }}
+          />
         </div>
-    );
+
+        {/* Right Panel: Content Meta & Interactions Terminal */}
+        <div className="w-full md:w-2/5 p-6 sm:p-8 flex flex-col justify-between overflow-hidden bg-[#151B22]">
+          
+          {/* Scrollable Upper Metadata Sector */}
+          <div className="overflow-y-auto space-y-6 flex-1 pr-1">
+            <div className="flex items-center justify-between">
+              {/* Creator Context Badge */}
+              <div className="flex items-center gap-3">
+                {pin.creatorAvatar && (
+                  <img
+                    src={pin.creatorAvatar}
+                    alt={pin.creatorName}
+                    className="w-8 h-8 rounded-full border border-brand-accent/30"
+                  />
+                )}
+                <div>
+                  <p className="text-xs font-semibold text-white tracking-wide">{pin.creatorName}</p>
+                  <p className="text-[10px] text-brand-muted font-mono">ASSET CONTRIBUTOR</p>
+                </div>
+              </div>
+
+              {/* Top Right Action Control Station */}
+              <div className="flex items-center gap-2 relative" ref={menuRef}>
+                {/* 3-Dots Interactive Context Menu Trigger */}
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="text-brand-muted hover:text-white transition-colors p-2 bg-white/5 hover:bg-white/10 rounded-full cursor-pointer flex items-center justify-center"
+                  aria-label="More options"
+                >
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Options Frame Component */}
+                {isMenuOpen && (
+                    <div className="absolute right-0 top-full mt-2 bg-brand-surface border border-white/10 rounded-xl shadow-xl py-1.5 w-40 z-30 font-mono text-xs animate-in fade-in slide-in-from-top-2 duration-150">
+                        {pin.creatorId === activeUserId ? (
+                        <button
+                            onClick={handlePinDelete}
+                            className="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-colors flex items-center gap-2 cursor-pointer"
+                        >
+                            Delete Post
+                        </button>
+                        ) : (
+                        <div className="px-4 py-2 text-[10px] text-brand-muted uppercase">
+                            No Actions Available
+                        </div>
+                        )}
+                        {/* Future options menu links go straight here */}
+                    </div>
+                    )}
+
+                {/* Close Button UI Component -> Shifted cleanly to right-most end */}
+                <button
+                  onClick={onClose}
+                  className="text-white hover:text-brand-accent font-mono text-xs font-bold px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all cursor-pointer uppercase"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+
+            {/* Core Typography Asset Details */}
+            <div className="space-y-2 pt-2">
+              <h2 className="text-xl font-bold tracking-wider text-white uppercase font-mono border-b border-white/5 pb-3">
+                {pin.title}
+              </h2>
+              <p className="text-xs text-brand-muted leading-relaxed font-sans pt-1">
+                {pin.description || 'No descriptive structural metadata provided for this cluster asset node.'}
+              </p>
+            </div>
+
+            {/* Live Interactive Comment Terminal Stream Feed */}
+            <div className="pt-4 space-y-3">
+              <h3 className="text-[11px] font-bold tracking-widest text-brand-accent font-mono uppercase">
+                Activity Stream // {commentStream.length} Nodes
+              </h3>
+              
+              <div className="space-y-3 max-h-[240px] overflow-y-auto pr-1">
+                {commentStream.length === 0 ? (
+                  <div className="text-[11px] font-mono p-4 rounded-xl border border-dashed border-white/10 bg-brand-bg/50 text-white/40 text-center py-6">
+                    NO LOG ENTRY STREAM ENCOUNTERED // WRITE FIRST ENTRY
+                  </div>
+                ) : (
+                  commentStream.map((cmt, idx) => (
+                    <div key={cmt._id || idx} className="flex gap-3 bg-white/5 p-3 rounded-xl border border-white/5 items-start">
+                      {cmt.user?.avatar && (
+                        <img 
+                          src={cmt.user.avatar} 
+                          alt={cmt.user.name} 
+                          className="w-6 h-6 rounded-full border border-white/10 mt-0.5" 
+                        />
+                      )}
+                      <div className="flex justify-between items-start w-full">
+                        <div className="space-y-0.5 flex-1 min-w-0">
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-[11px] font-bold text-white truncate">{cmt.user?.name || 'Contributor'}</span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-[9px] font-mono text-white/40">
+                                {cmt.createdAt ? new Date(cmt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'NOW'}
+                              </span>
+                              
+                              {(cmt.user?._id === activeUserId || pin.creatorId === activeUserId) && (
+                                <button
+                                  onClick={() => handleCommentDelete(cmt._id!)}
+                                  className="text-[9px] font-mono font-bold text-red-400/60 hover:text-red-400 uppercase tracking-tight transition-colors bg-white/5 hover:bg-red-500/10 px-1.5 py-0.5 rounded cursor-pointer border border-white/5"
+                                >
+                                  × Del
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-xs text-white/80 break-words font-sans mt-0.5">{cmt.text}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Execution Component: Input Message Box Form */}
+          <form onSubmit={handleCommentSubmit} className="pt-4 border-t border-white/5 mt-4 flex items-center gap-2">
+            <input
+              type="text"
+              value={commentInput}
+              onChange={(e) => setCommentInput(e.target.value)}
+              placeholder="Inject statement node data..."
+              className="flex-1 bg-brand-bg border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brand-accent font-mono"
+            />
+            <button
+              type="submit"
+              disabled={submitting || !commentInput.trim()}
+              className="bg-white/5 hover:bg-brand-accent hover:text-brand-bg text-white font-mono text-[11px] font-bold px-4 py-2.5 rounded-xl border border-white/10 hover:border-brand-accent transition-all uppercase cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              {submitting ? '...' : 'Post'}
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  );
 };
