@@ -49,12 +49,16 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const [activeCommentMenuId, setActiveCommentMenuId] = useState<string | null>(null);
+  const commentMenuRef = useRef<HTMLDivElement>(null);
+
   // Sync state cleanly whenever a brand new pin selection frame maps into view
   useEffect(() => {
     if (pin) {
       setCommentStream(pin.comments || []);
     }
     setIsMenuOpen(false); // Reset menu state on pin change
+    setActiveCommentMenuId(null);
   }, [pin]);
 
   // Close dropdown menu if clicking outside of it
@@ -62,6 +66,10 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
+      }
+      // Close active comment option panels on loose window clicks
+      if (commentMenuRef.current && !commentMenuRef.current.contains(event.target as Node)) {
+        setActiveCommentMenuId(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -155,7 +163,7 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
                   <img
                     src={pin.creatorAvatar}
                     alt={pin.creatorName}
-                    className="w-8 h-8 rounded-full border border-brand-accent/30"
+                    className="w-8 h-8 rounded-full border border-brand-accent/30 object-cover"
                   />
                 )}
                 <div>
@@ -179,24 +187,23 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
 
                 {/* Dropdown Options Frame Component */}
                 {isMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 bg-brand-surface border border-white/10 rounded-xl shadow-xl py-1.5 w-40 z-30 font-mono text-xs animate-in fade-in slide-in-from-top-2 duration-150">
-                        {pin.creatorId === activeUserId ? (
-                        <button
-                            onClick={handlePinDelete}
-                            className="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-colors flex items-center gap-2 cursor-pointer"
-                        >
-                            Delete Post
-                        </button>
-                        ) : (
-                        <div className="px-4 py-2 text-[10px] text-brand-muted uppercase">
-                            No Actions Available
-                        </div>
-                        )}
-                        {/* Future options menu links go straight here */}
-                    </div>
+                  <div className="absolute right-0 top-full mt-2 bg-brand-surface border border-white/10 rounded-xl shadow-xl py-1.5 w-40 z-30 font-mono text-xs animate-in fade-in slide-in-from-top-2 duration-150">
+                    {pin.creatorId === activeUserId ? (
+                      <button
+                        onClick={handlePinDelete}
+                        className="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-colors flex items-center gap-2 cursor-pointer"
+                      >
+                        Delete Post
+                      </button>
+                    ) : (
+                      <div className="px-4 py-2 text-[10px] text-brand-muted uppercase">
+                        No Actions Available
+                      </div>
                     )}
+                  </div>
+                )}
 
-                {/* Close Button UI Component -> Shifted cleanly to right-most end */}
+                {/* Close Button UI Component */}
                 <button
                   onClick={onClose}
                   className="text-white hover:text-brand-accent font-mono text-xs font-bold px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all cursor-pointer uppercase"
@@ -222,45 +229,78 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
                 Activity Stream // {commentStream.length} Nodes
               </h3>
               
-              <div className="space-y-3 max-h-[240px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[240px] overflow-y-auto pr-1 pb-12">
                 {commentStream.length === 0 ? (
                   <div className="text-[11px] font-mono p-4 rounded-xl border border-dashed border-white/10 bg-brand-bg/50 text-white/40 text-center py-6">
                     NO LOG ENTRY STREAM ENCOUNTERED // WRITE FIRST ENTRY
                   </div>
                 ) : (
-                  commentStream.map((cmt, idx) => (
-                    <div key={cmt._id || idx} className="flex gap-3 bg-white/5 p-3 rounded-xl border border-white/5 items-start">
-                      {cmt.user?.avatar && (
-                        <img 
-                          src={cmt.user.avatar} 
-                          alt={cmt.user.name} 
-                          className="w-6 h-6 rounded-full border border-white/10 mt-0.5" 
-                        />
-                      )}
-                      <div className="flex justify-between items-start w-full">
-                        <div className="space-y-0.5 flex-1 min-w-0">
-                          <div className="flex justify-between items-center gap-2">
-                            <span className="text-[11px] font-bold text-white truncate">{cmt.user?.name || 'Contributor'}</span>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-[9px] font-mono text-white/40">
-                                {cmt.createdAt ? new Date(cmt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'NOW'}
-                              </span>
-                              
-                              {(cmt.user?._id === activeUserId || pin.creatorId === activeUserId) && (
-                                <button
-                                  onClick={() => handleCommentDelete(cmt._id!)}
-                                  className="text-[9px] font-mono font-bold text-red-400/60 hover:text-red-400 uppercase tracking-tight transition-colors bg-white/5 hover:bg-red-500/10 px-1.5 py-0.5 rounded cursor-pointer border border-white/5"
-                                >
-                                  × Del
-                                </button>
-                              )}
-                            </div>
+                  commentStream.map((cmt, idx) => {
+                    const commentId = cmt._id || `temp-${idx}`;
+                    const isMenuOpenForThisComment = activeCommentMenuId === commentId;
+
+                    return (
+                      <div key={commentId} className="flex gap-3 bg-white/5 p-3 rounded-xl border border-white/5 items-start">
+                        {cmt.user?.avatar && (
+                          <img 
+                            src={cmt.user.avatar} 
+                            alt={cmt.user.name} 
+                            className="w-6 h-6 rounded-full border border-white/10 mt-0.5 object-cover" 
+                          />
+                        )}
+                        <div className="flex justify-between items-start w-full gap-2">
+                          <div className="space-y-0.5 flex-1 min-w-0">
+                            <span className="text-[11px] font-bold text-white truncate block">
+                              {cmt.user?.name || 'Contributor'}
+                            </span>
+                            <p className="text-xs text-white/80 break-words font-sans mt-0.5">
+                              {cmt.text}
+                            </p>
                           </div>
-                          <p className="text-xs text-white/80 break-words font-sans mt-0.5">{cmt.text}</p>
+
+                          {/* Action Controls & Dropdown Workspace Sector */}
+                          <div 
+                            className="flex items-center gap-2 shrink-0 relative" 
+                            ref={isMenuOpenForThisComment ? commentMenuRef : null}
+                          >
+                            <span className="text-[9px] font-mono text-white/40">
+                              {cmt.createdAt ? new Date(cmt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'NOW'}
+                            </span>
+                            
+                            {/* Conditional 3-dots icon button for Authorized comment nodes */}
+                            {(cmt.user?._id === activeUserId || pin.creatorId === activeUserId) && (
+                              <div className="relative">
+                                <button
+                                  onClick={() => setActiveCommentMenuId(isMenuOpenForThisComment ? null : commentId)}
+                                  className="text-brand-muted hover:text-white transition-colors p-1 bg-white/5 hover:bg-white/10 rounded-full cursor-pointer flex items-center justify-center border border-white/5"
+                                  aria-label="Comment options"
+                                >
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                                  </svg>
+                                </button>
+
+                                {/* Comment Actions Mini Floating Panel -> Perfectly aligned underneath */}
+                                {isMenuOpenForThisComment && (
+                                  <div className="absolute right-0 top-full mt-1 bg-brand-surface border border-white/10 rounded-lg shadow-xl py-1 w-28 z-50 font-mono text-[10px] animate-in fade-in slide-in-from-top-1 duration-100">
+                                    <button
+                                      onClick={() => {
+                                        handleCommentDelete(cmt._id!);
+                                        setActiveCommentMenuId(null);
+                                      }}
+                                      className="w-full text-left px-3 py-1.5 text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer font-bold"
+                                    >
+                                      Delete Log
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>
