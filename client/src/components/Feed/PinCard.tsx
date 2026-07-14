@@ -84,13 +84,15 @@ export const PinCard: React.FC<PinCardProps> = ({
         {/* Hover Interaction Layer */}
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-between z-10">
           <div className="flex justify-end">
+            {/* Upgraded Brand-Consistent Save Button */}
             <button
               onClick={handleSaveClick}
               disabled={savingLoader}
               className={`absolute top-3 right-3 px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider font-mono uppercase transition-all duration-200 z-20 ${
                 isSaved
                   ? "bg-black/60 text-white/50 border border-white/10 hover:bg-black/80 backdrop-blur-md"
-                  : "bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-500/20"
+                  : // bg-red-600 -> bg-brand-accent, hover:bg-red-700 -> hover:bg-cyan-400, text-white -> text-brand-bg
+                    "bg-brand-accent text-brand-bg hover:bg-cyan-400 font-extrabold shadow-lg shadow-cyan-500/20"
               }`}
             >
               {savingLoader ? "..." : isSaved ? "Saved" : "Save"}
