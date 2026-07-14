@@ -47,6 +47,21 @@ export default function HomePage() {
     setRefreshKey((prev) => prev + 1); // Triggers re-fetch cascade across states
   };
 
+  const handleToggleSaveState = (pinId: string, isSavedNow: boolean) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+      const currentSaved = prevUser.savedPins || [];
+      return {
+        ...prevUser,
+        savedPins: isSavedNow
+          ? [...currentSaved, pinId]
+          : currentSaved.filter((id) => id !== pinId),
+      };
+    });
+    // Triggers a background grid re-sync so the 'Saved Deck' updates if you remove one!
+    handleRefreshFeed();
+  };
+
   return (
     <main className="w-full min-h-screen p-4 sm:p-8 bg-brand-bg text-foreground flex flex-col justify-start items-stretch">
       <header className="w-full mb-8 border-b border-brand-surface pb-6 flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
@@ -61,7 +76,7 @@ export default function HomePage() {
 
         {/* CRITICAL ADDITION: Premium Tab Filter Layout Switch for Authenticated Sessions */}
         {user && (
-          <div className="flex bg-white/5 p-1 rounded-full border border-white/5 font-mono text-xs orden-last sm:order-none">
+          <div className="flex bg-white/5 p-1 rounded-full border border-white/5 font-mono text-xs orden-last sm:order-0">
             <button
               onClick={() => setActiveTab("feed")}
               className={`px-5 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
@@ -136,8 +151,11 @@ export default function HomePage() {
       {/* Main Grid Sector: Pass dynamic flags so the grid re-syncs on view transitions */}
       <section className="w-full text-left block clear-both grow">
         <MasonryGrid
-          key={`${refreshKey}-${activeTab}`} // Appending activeTab directly to the key triggers an instant refresh whenever a button is clicked!
-          currentView={activeTab} // Pass the view parameter down to alter endpoints
+          key={`${refreshKey}-${activeTab}`}
+          currentView={activeTab}
+          // CRITICAL ADDITIONS: Pass the state and the master function down to the grid!
+          savedPinIds={user?.savedPins || []}
+          onSaveToggled={handleToggleSaveState}
           onSelectPin={(pin) => {
             setSelectedPin(pin);
             setIsInspectOpen(true);
