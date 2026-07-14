@@ -226,13 +226,13 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
             {/* Live Interactive Comment Terminal Stream Feed */}
             <div className="pt-4 space-y-3">
               <h3 className="text-[11px] font-bold tracking-widest text-brand-accent font-mono uppercase">
-                Activity Stream // {commentStream.length} Nodes
+                Comments: {commentStream.length}
               </h3>
               
-              <div className="space-y-3 max-h-[240px] overflow-y-auto pr-1 pb-12">
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-1 pb-12">
                 {commentStream.length === 0 ? (
                   <div className="text-[11px] font-mono p-4 rounded-xl border border-dashed border-white/10 bg-brand-bg/50 text-white/40 text-center py-6">
-                    NO LOG ENTRY STREAM ENCOUNTERED // WRITE FIRST ENTRY
+                    No Comments Yet. Be the first one to comment.
                   </div>
                 ) : (
                   commentStream.map((cmt, idx) => {
@@ -253,7 +253,7 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
                             <span className="text-[11px] font-bold text-white truncate block">
                               {cmt.user?.name || 'Contributor'}
                             </span>
-                            <p className="text-xs text-white/80 break-words font-sans mt-0.5">
+                            <p className="text-xs text-white/80 wrap-break-word font-sans mt-0.5">
                               {cmt.text}
                             </p>
                           </div>
@@ -312,7 +312,7 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
               type="text"
               value={commentInput}
               onChange={(e) => setCommentInput(e.target.value)}
-              placeholder="Inject statement node data..."
+              placeholder="Write a comment..."
               className="flex-1 bg-brand-bg border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white placeholder-white/30 focus:outline-none focus:border-brand-accent font-mono"
             />
             <button
