@@ -47,3 +47,22 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 });
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://your-tesserio-frontend.vercel.app", // You will replace this with your actual Vercel URL once deployed
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        return callback(new Error("CORS policy violation"), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  }),
+);
