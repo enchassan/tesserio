@@ -1,48 +1,57 @@
 // server/src/models/User.js
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema(
+  {
     googleId: {
-        type: String,
-        required: true,
-        unique : true, // Prevents duplicate profiles from a single google account
+      type: String,
+      required: true,
+      unique: true, // Prevents duplicate profiles from a single google account
     },
     name: {
-        type: String,
-        required: true,
-        trim: true,
+      type: String,
+      required: true,
+      trim: true,
     },
     email: {
-        type: String,
-        required: true,
-        trim: true,
-        unique : true,
-        lowercase: true,
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+      lowercase: true,
     },
     avatar: {
-        type: String, // Google profile picture URL
-        default: ''
+      type: String, // Google profile picture URL
+      default: "",
     },
     bio: {
-        type: String,
-        maxlength: 160,
-        default: '',
+      type: String,
+      maxlength: 160,
+      default: "",
     },
     // Relational Arrays (Self-referencing the User Model for social features)
-    followers: [{
+    followers: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
-    following: [{
+        ref: "User",
+      },
+    ],
+    following: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-    }],
-    savedPins: [{
+        ref: "User",
+      },
+    ],
+    savedPins: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Pin' // Make sure this matches your Pin model's registration name exactly
-    }],
-}, {
-    timestamps: true // Automatically generates createdAt and updatedAt fields
-});
+        ref: "Pin", // Make sure this matches your Pin model's registration name exactly
+      },
+    ],
+  },
+  {
+    timestamps: true, // Automatically generates createdAt and updatedAt fields
+  },
+);
 
-module.exports = mongoose.model('User', UserSchema);
+module.exports = mongoose.model("User", UserSchema);

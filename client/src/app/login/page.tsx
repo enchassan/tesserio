@@ -34,14 +34,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#0B0F12] flex flex-col items-center justify-center relative overflow-hidden px-4 select-none">
       {/* Background Cyber-Grid Aura */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-accent/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-125 h-125 bg-brand-accent/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff03_1px,transparent_1px),linear-gradient(to_bottom,#ffffff03_1px,transparent_1px)] bg-size-[32px_32px] pointer-events-none" />
 
       {/* Main Glass Gate Container */}
       <div className="w-full max-w-md bg-[#151B22]/60 backdrop-blur-xl border border-white/10 rounded-3xl p-8 sm:p-10 shadow-2xl relative z-10 text-center space-y-8 animate-in fade-in zoom-in-95 duration-300">
         {/* Brand Identity Header */}
         <div className="space-y-3">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 mb-2 shadow-inner">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/3 border border-white/10 mb-2 shadow-inner">
             <span className="text-2xl font-bold font-mono tracking-widest text-brand-accent animate-pulse">
               T
             </span>
