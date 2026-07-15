@@ -61,15 +61,11 @@ router.get(
       expiresIn: "7d",
     });
 
-    const isProduction = process.env.NODE_ENV === "production";
-
-    // CRITICAL FIX: sameSite MUST be 'none' and secure MUST be true
-    // for cookies to survive the redirect from Railway (.up.railway.app) to Vercel (.vercel.app).
     res.cookie("token", token, {
       httpOnly: true,
-      secure: true, // Always true for cross-domain cookies
-      sameSite: "none", // Changed from 'lax' to allow cross-site cookie sharing
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.redirect(`${CLIENT_URL}/`);
@@ -93,8 +89,8 @@ router.get("/logout", (req, res) => {
   // Options MUST mirror the options used when the cookie was SET.
   res.clearCookie("token", {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
   });
 
   res.status(200).json({

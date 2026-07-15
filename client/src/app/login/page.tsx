@@ -24,13 +24,7 @@ export default function LoginPage() {
   }, [router]);
 
   const handleGoogleLogin = () => {
-    const apiBaseUrl =
-      process.env.NEXT_PUBLIC_API_URL ||
-      (process.env.NODE_ENV === "production"
-        ? "/api"
-        : "http://localhost:5000/api");
-    const oauthUrl = `${apiBaseUrl}/auth/google`;
-    window.location.href = oauthUrl;
+    window.location.href = "/api/auth/google";
   };
 
   return (
