@@ -10,8 +10,7 @@ const CLIENT_URL =
 const JWT_SECRET = process.env.JWT_SECRET;
 
 if (!JWT_SECRET) {
-  // Fail loudly at boot time — a missing JWT secret is a critical
-  // misconfiguration that will cause every auth operation to throw.
+  // Fail loudly at boot time
   console.error(
     "[auth] FATAL: JWT_SECRET environment variable is not set. " +
       "All token operations will fail. Set this value immediately.",
@@ -31,8 +30,6 @@ router.get("/google", (req, res, next) => {
 
   return passport.authenticate("google", {
     scope: ["profile", "email"],
-    // prompt: 'select_account' forces the account picker even when the
-    // user has an active Google session — prevents stale-account issues
     prompt: "select_account",
   })(req, res, next);
 });
@@ -42,8 +39,6 @@ router.get("/google", (req, res, next) => {
 // @access Public (Google redirects here)
 router.get(
   "/google/callback",
-  // Step 1: Let passport exchange the code for a token and fetch the profile.
-  // On failure, redirect to the login page. session: false because we use JWT.
   (req, res, next) => {
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
       return res.status(503).json({
@@ -57,11 +52,8 @@ router.get(
       session: false,
     })(req, res, next);
   },
-  // Step 2: Passport succeeded — req.user is populated. Sign JWT and set cookie.
   (req, res) => {
     if (!req.user) {
-      // Guard against a degenerate case where passport calls next() without
-      // populating req.user (e.g. if the strategy calls done(null, false)).
       return res.redirect(`${CLIENT_URL}/login?error=no_user`);
     }
 
@@ -71,13 +63,12 @@ router.get(
 
     const isProduction = process.env.NODE_ENV === "production";
 
-    // Cookie is same-origin because all requests route through Vercel's
-    // proxy (/api/* → Railway). sameSite: 'lax' is correct here.
-    // secure: true in production (HTTPS), false in local dev (HTTP).
+    // CRITICAL FIX: sameSite MUST be 'none' and secure MUST be true
+    // for cookies to survive the redirect from Railway (.up.railway.app) to Vercel (.vercel.app).
     res.cookie("token", token, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: "lax",
+      secure: true, // Always true for cross-domain cookies
+      sameSite: "none", // Changed from 'lax' to allow cross-site cookie sharing
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
     });
 
@@ -95,17 +86,15 @@ router.get("/me", requireAuth, (req, res) => {
   });
 });
 
-// @desc  Log out the current user (clear the JWT cookie)
+// @desc  Log out the current user
 // @route GET /api/auth/logout
 // @access Private
 router.get("/logout", (req, res) => {
-  const isProduction = process.env.NODE_ENV === "production";
-
   // Options MUST mirror the options used when the cookie was SET.
   res.clearCookie("token", {
     httpOnly: true,
-    secure: isProduction,
-    sameSite: "lax",
+    secure: true,
+    sameSite: "none",
   });
 
   res.status(200).json({
