@@ -51,6 +51,14 @@ app.use(passport.initialize());
 app.use("/api/auth", authRoutes);
 app.use("/api/pins", pinRoutes);
 
+app.get("/", (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Tesserio API is running",
+    service: "backend",
+  });
+});
+
 app.get("/api/health", (req, res) => {
   res.status(200).json({
     status: "success",
@@ -61,7 +69,7 @@ app.get("/api/health", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(
     `Server running in ${process.env.NODE_ENV || "development"} mode on port ${PORT}`,
   );

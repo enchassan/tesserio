@@ -1,0 +1,10 @@
+{
+  "name": "tesserio",
+  "private": true,
+  "workspaces": [
+    "server"
+  ],
+  "scripts": {
+    "start": "npm --prefix server run start"
+  }
+}
