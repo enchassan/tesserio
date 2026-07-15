@@ -3,7 +3,6 @@ const express = require("express");
 const router = express.Router();
 const Pin = require("../models/Pin");
 const User = require("../models/User");
-const { requireAuth } = require("../middleware/auth");
 
 // @desc    Create a New Pin
 // @route   POST /api/pins
@@ -13,12 +12,10 @@ router.post("/", requireAuth, async (req, res) => {
     const { title, description, mediaUrl, mediaType, aspectRatio } = req.body;
 
     if (!title || !mediaUrl) {
-      return res
-        .status(400)
-        .json({
-          status: "fail",
-          message: "Title and Media URL are required fields.",
-        });
+      return res.status(400).json({
+        status: "fail",
+        message: "Title and Media URL are required fields.",
+      });
     }
 
     // Instantiate the document tied to req.user._id attached by our auth guard
@@ -70,12 +67,10 @@ router.post("/:id/comments", requireAuth, async (req, res) => {
     const { text } = req.body;
 
     if (!text || !text.trim()) {
-      return res
-        .status(400)
-        .json({
-          status: "fail",
-          message: "Comment text cannot be empty node frames.",
-        });
+      return res.status(400).json({
+        status: "fail",
+        message: "Comment text cannot be empty node frames.",
+      });
     }
 
     // 1. Find the target pin asset document
@@ -258,12 +253,10 @@ router.delete("/:id/comments/:commentId", requireAuth, async (req, res) => {
     // 2. Find the nested comment sub-document
     const comment = pin.comments.id(commentId);
     if (!comment) {
-      return res
-        .status(404)
-        .json({
-          status: "fail",
-          message: "Target comment entry node not found.",
-        });
+      return res.status(404).json({
+        status: "fail",
+        message: "Target comment entry node not found.",
+      });
     }
 
     // 3. Security Check: Must be the author of the comment OR the owner of the pin
