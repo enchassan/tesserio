@@ -14,7 +14,7 @@ const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 const googleCallbackUrl =
     process.env.GOOGLE_CALLBACK_URL ||
     (process.env.NODE_ENV === "production"
-        ? "https://tesserio.up.railway.app/api/auth/google/callback"
+        ? "https://tesserio.vercel.app/api/auth/google/callback"
         : "http://localhost:5000/api/auth/google/callback");
 
 if (googleClientId && googleClientSecret) {
