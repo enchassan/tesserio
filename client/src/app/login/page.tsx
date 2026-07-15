@@ -25,8 +25,10 @@ export default function LoginPage() {
 
   const handleGoogleLogin = () => {
     const apiBaseUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-    // Perfectly matches your server.js mount path: /api/auth/google
+      process.env.NEXT_PUBLIC_API_URL ||
+      (process.env.NODE_ENV === "production"
+        ? "/api"
+        : "http://localhost:5000/api");
     const oauthUrl = `${apiBaseUrl}/auth/google`;
     window.location.href = oauthUrl;
   };

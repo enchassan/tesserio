@@ -2,53 +2,75 @@
 const express = require("express");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
+const { requireAuth } = require("../middleware/auth");
 const router = express.Router();
 
-// Dynamic environment routing
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+const CLIENT_URL =
+  process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:3000";
+const JWT_SECRET = process.env.JWT_SECRET || "dev-jwt-secret-change-me";
 
-// @desc    Initiate Google OAuth Handshake
-// @route   GET /api/auth/google
-router.get(
-  "/google",
-  passport.authenticate("google", { scope: ["profile", "email"] }),
-);
+router.get("/google", (req, res, next) => {
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+    return res.status(503).json({
+      status: "fail",
+      message: "Google OAuth is not configured on the server.",
+    });
+  }
 
-// @desc    Google OAuth Callback Interceptor
-// @route   GET /api/auth/google/callback
+  return passport.authenticate("google", { scope: ["profile", "email"] })(
+    req,
+    res,
+    next,
+  );
+});
+
 router.get(
   "/google/callback",
-  passport.authenticate("google", {
-    failureRedirect: `${CLIENT_URL}/login`,
-    session: false,
-  }),
+  (req, res, next) => {
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      return res.status(503).json({
+        status: "fail",
+        message: "Google OAuth is not configured on the server.",
+      });
+    }
+
+    return passport.authenticate("google", {
+      failureRedirect: `${CLIENT_URL}/login`,
+      session: false,
+    })(req, res, next);
+  },
   (req, res) => {
-    // Create secure JWT token payload containing the user's MongoDB unique identifier
-    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: req.user._id }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
-    // Bake token into an enterprise-grade HttpOnly cookie wrapper
+    const isProduction = process.env.NODE_ENV === "production";
+
     res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    // Safe landing redirection straight back to your Next.js client canvas dashboard
     res.redirect(`${CLIENT_URL}/`);
   },
 );
 
-// @desc    Logout user and destroy session cookie
-// @route   GET /api/auth/logout
+router.get("/me", requireAuth, (req, res) => {
+  res.status(200).json({
+    status: "success",
+    user: req.user,
+  });
+});
+
 router.get("/logout", (req, res) => {
-  // Clear the JWT or session cookie cleanly
+  const isProduction = process.env.NODE_ENV === "production";
+
   res.clearCookie("token", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: isProduction,
+    sameSite: isProduction ? "none" : "lax",
   });
 
   res.status(200).json({

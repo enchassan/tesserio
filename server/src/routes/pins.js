@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 const Pin = require("../models/Pin");
 const User = require("../models/User");
+const { requireAuth } = require("../middleware/auth");
 
 // @desc    Create a New Pin
 // @route   POST /api/pins
