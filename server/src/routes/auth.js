@@ -71,13 +71,13 @@ router.get(
 
     const isProduction = process.env.NODE_ENV === "production";
 
-    // Cookie is same-origin because all requests route through Vercel's
-    // proxy (/api/* → Railway). sameSite: 'lax' is correct here.
-    // secure: true in production (HTTPS), false in local dev (HTTP).
+    // Cross-domain cookie requirements (Railway backend → Vercel frontend):
+    // - secure: true         → HTTPS only (required for sameSite: 'none')
+    // - sameSite: 'none'     → Allows cross-site requests (Vercel → Railway)
     res.cookie("token", token, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: "lax",
+      sameSite: isProduction ? "none" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
     });
 
@@ -105,7 +105,7 @@ router.get("/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: isProduction,
-    sameSite: "lax",
+    sameSite: isProduction ? "none" : "lax",
   });
 
   res.status(200).json({
