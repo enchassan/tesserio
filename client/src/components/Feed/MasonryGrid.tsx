@@ -70,7 +70,7 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({
 
   if (loading) {
     return (
-      <div className="w-full text-center py-20 font-mono text-xs tracking-widest text-brand-muted animate-pulse uppercase">
+      <div className="w-full text-center py-12 md:py-20 font-mono text-xs tracking-widest text-brand-muted animate-pulse uppercase">
         RESOLVING LIVE MEDIA RECOGNITIONS // ...
       </div>
     );
@@ -78,8 +78,8 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({
 
   if (pins.length === 0) {
     return (
-      <div className="w-full text-center py-32 border border-dashed border-white/10 rounded-3xl bg-brand-surface/10">
-        <p className="font-mono text-sm text-brand-muted tracking-wider uppercase">
+      <div className="w-full text-center py-16 md:py-32 border border-dashed border-white/10 rounded-2xl md:rounded-3xl bg-brand-surface/10 px-4">
+        <p className="font-mono text-xs md:text-sm text-brand-muted tracking-wider uppercase">
           {currentView === "saved"
             ? "NO SAVED ASSETS FOUND IN PROFILE"
             : "NO PIN ASSETS DISCOVERED IN CLUSTER"}
@@ -93,53 +93,36 @@ export const MasonryGrid: React.FC<MasonryGridProps> = ({
     );
   }
 
-  const numColumns = 5;
-  const columns: PinAsset[][] = Array.from({ length: numColumns }, () => []);
-
-  pins.forEach((pin, index) => {
-    columns[index % numColumns].push(pin);
-  });
-
   return (
-    <div className="w-full mt-4">
-      <div className="flex flex-row justify-start items-start gap-4 w-full">
-        {columns.map((colPins, colIdx) => (
-          <div
-            key={colIdx}
-            className="flex flex-col gap-4 flex-1 min-w-0"
-            style={{ display: "flex" }}
-          >
-            {colPins.map((pin) => (
-              <PinCard
-                key={pin._id}
-                id={pin._id}
-                title={pin.title}
-                description={pin.description || ""}
-                mediaUrl={pin.mediaUrl}
-                aspectRatio={pin.aspectRatio}
-                creatorName={pin.user?.name || "Anonymous Creator"}
-                creatorAvatar={pin.user?.avatar || ""}
-                isSaved={savedPinIds.includes(pin._id)}
-                onSaveToggle={(isSavedNow) => {
-                  if (onSaveToggled) onSaveToggled(pin._id, isSavedNow);
-                }}
-                onClick={() =>
-                  onSelectPin({
-                    id: pin._id,
-                    title: pin.title,
-                    description: pin.description,
-                    mediaUrl: pin.mediaUrl,
-                    creatorName: pin.user?.name || "Anonymous Creator",
-                    creatorAvatar: pin.user?.avatar || "",
-                    comments: pin.comments || [],
-                    creatorId: pin.user?._id || pin.user,
-                  })
-                }
-              />
-            ))}
-          </div>
-        ))}
-      </div>
+    <div className="w-full mt-2 md:mt-4 columns-2 gap-3 md:columns-3 lg:columns-4 xl:columns-5 space-y-3">
+      {pins.map((pin) => (
+        <PinCard
+          key={pin._id}
+          id={pin._id}
+          title={pin.title}
+          description={pin.description || ""}
+          mediaUrl={pin.mediaUrl}
+          aspectRatio={pin.aspectRatio}
+          creatorName={pin.user?.name || "Anonymous Creator"}
+          creatorAvatar={pin.user?.avatar || ""}
+          isSaved={savedPinIds.includes(pin._id)}
+          onSaveToggle={(isSavedNow) => {
+            if (onSaveToggled) onSaveToggled(pin._id, isSavedNow);
+          }}
+          onClick={() =>
+            onSelectPin({
+              id: pin._id,
+              title: pin.title,
+              description: pin.description,
+              mediaUrl: pin.mediaUrl,
+              creatorName: pin.user?.name || "Anonymous Creator",
+              creatorAvatar: pin.user?.avatar || "",
+              comments: pin.comments || [],
+              creatorId: pin.user?._id || pin.user,
+            })
+          }
+        />
+      ))}
     </div>
   );
 };

@@ -177,17 +177,17 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10">
-      {/* Backdrop Blur Layer */}
+    <div className="fixed inset-0 z-50 flex items-stretch justify-center p-0 md:items-center md:p-6 lg:p-10">
+      {/* Backdrop — desktop only */}
       <div
-        className="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity"
+        className="absolute inset-0 bg-black/75 backdrop-blur-md transition-opacity hidden md:block"
         onClick={onClose}
       />
 
-      {/* Main Inspect Container Deck */}
-      <div className="bg-brand-surface w-full max-w-5xl rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative z-10 flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh]">
-        {/* Left Panel: High-Fidelity Asset Viewport */}
-        <div className="w-full md:w-3/5 bg-neutral-950 flex items-center justify-center p-2 overflow-hidden max-h-[40vh] md:max-h-full">
+      {/* Main Inspect Container */}
+      <div className="flex flex-col md:flex-row w-full h-full md:h-[80vh] md:max-w-5xl bg-brand-surface md:rounded-[32px] overflow-hidden border-0 md:border border-white/10 shadow-2xl relative z-10">
+        {/* Image Panel — pinned top on mobile */}
+        <div className="w-full md:w-1/2 h-[50vh] md:h-full bg-neutral-950 flex-shrink-0 flex items-center justify-center overflow-hidden">
           <img
             src={
               pin.mediaUrl.startsWith("http")
@@ -195,7 +195,7 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
                 : `https://${pin.mediaUrl}`
             }
             alt={pin.title}
-            className="w-full h-full object-contain max-h-[40vh] md:max-h-[80vh]"
+            className="w-full h-full object-contain bg-black/5"
             onError={(e) => {
               (e.target as HTMLImageElement).src =
                 "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800";
@@ -203,11 +203,23 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
           />
         </div>
 
-        {/* Right Panel: Content Meta & Interactions Terminal */}
-        <div className="w-full md:w-2/5 p-6 sm:p-8 flex flex-col justify-between overflow-hidden bg-[#151B22]">
-          {/* Scrollable Upper Metadata Sector */}
-          <div className="overflow-y-auto space-y-6 flex-1 pr-1">
-            <div className="flex items-center justify-between">
+        {/* Details / Comments Panel — scrollable below image on mobile */}
+        <div className="w-full md:w-1/2 flex flex-col p-4 md:p-8 overflow-hidden bg-[#151B22] min-h-0 flex-1">
+          {/* Mobile close bar */}
+          <div className="flex md:hidden items-center justify-between mb-3 pb-3 border-b border-white/10 shrink-0">
+            <span className="text-[10px] font-mono text-brand-muted uppercase tracking-widest">
+              Pin Details
+            </span>
+            <button
+              onClick={onClose}
+              className="text-white hover:text-brand-accent font-mono text-xs font-bold px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all cursor-pointer uppercase"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto pb-20 md:pb-0 space-y-4 md:space-y-6 pr-1 min-h-0">
+            <div className="flex items-center justify-between gap-2">
               {/* Creator Context Badge */}
               <div className="flex items-center gap-3">
                 {pin.creatorAvatar && (
@@ -277,10 +289,10 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
                   </div>
                 )}
 
-                {/* Close Button UI Component */}
+                {/* Close Button — desktop only */}
                 <button
                   onClick={onClose}
-                  className="text-white hover:text-brand-accent font-mono text-xs font-bold px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all cursor-pointer uppercase"
+                  className="hidden md:inline-flex text-white hover:text-brand-accent font-mono text-xs font-bold px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 transition-all cursor-pointer uppercase"
                 >
                   Close
                 </button>
@@ -304,7 +316,7 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
                 Comments: {commentStream.length}
               </h3>
 
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-1 pb-12">
+              <div className="space-y-3 md:max-h-none overflow-visible pr-1 pb-4 md:pb-12">
                 {commentStream.length === 0 ? (
                   <div className="text-[11px] font-mono p-4 rounded-xl border border-dashed border-white/10 bg-brand-bg/50 text-white/40 text-center py-6">
                     No Comments Yet. Be the first one to comment.
@@ -403,10 +415,10 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
             </div>
           </div>
 
-          {/* Bottom Execution Component: Input Message Box Form */}
+          {/* Comment input — sticky at bottom on mobile */}
           <form
             onSubmit={handleCommentSubmit}
-            className="pt-4 border-t border-white/5 mt-4 flex items-center gap-2"
+            className="pt-3 md:pt-4 border-t border-white/5 mt-auto flex items-center gap-2 shrink-0 bg-[#151B22]"
           >
             <input
               type="text"

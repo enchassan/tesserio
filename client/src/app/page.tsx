@@ -93,89 +93,169 @@ export default function HomePage() {
   }
 
   return (
-    <main className="w-full min-h-screen p-4 sm:p-8 bg-brand-bg text-foreground flex flex-col justify-start items-stretch">
-      <header className="w-full mb-8 border-b border-brand-surface pb-6 flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-wider font-mono text-white">
+    <main className="w-full min-h-screen px-2 py-2 md:p-4 lg:p-8 bg-brand-bg text-foreground flex flex-col justify-start items-stretch">
+      <header className="w-full mb-3 md:mb-8 border-b border-brand-surface px-3 py-2 md:px-6 md:py-4 pb-3 md:pb-6">
+        {/* Mobile nav — logo, search, avatar only */}
+        <div className="flex md:hidden items-center justify-between w-full gap-3">
+          <h1 className="text-lg font-bold tracking-wider font-mono text-white shrink-0">
             TESSER<span className="text-brand-accent">IO</span>
           </h1>
-          <p className="text-brand-muted text-xs mt-1">
-            Visual Discovery & Media Graph Platform
-          </p>
+
+          <button
+            type="button"
+            aria-label="Search"
+            className="p-2 text-brand-muted hover:text-white transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </button>
+
+          {user && (
+            <img
+              src={
+                user.avatar ||
+                `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`
+              }
+              alt={user.name}
+              className="w-8 h-8 rounded-full border border-brand-accent/40 object-cover bg-neutral-900 shrink-0"
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`;
+              }}
+            />
+          )}
         </div>
 
-        {/* Premium Tab Filter Layout Switch for Authenticated Sessions */}
+        {/* Mobile feed tabs — below header row */}
         {user && (
-          <div className="flex bg-white/5 p-1 rounded-full border border-white/5 font-mono text-xs order-last sm:order-none">
+          <div className="flex md:hidden bg-white/5 p-1 rounded-full border border-white/5 font-mono text-[10px] mt-3 w-full">
             <button
               onClick={() => setActiveTab("feed")}
-              className={`px-5 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
+              className={`flex-1 px-3 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
                 activeTab === "feed"
                   ? "bg-brand-accent text-brand-bg shadow-md shadow-cyan-500/10"
                   : "text-brand-muted hover:text-white"
               }`}
             >
-              Global Feed
+              Feed
             </button>
             <button
               onClick={() => setActiveTab("saved")}
-              className={`px-5 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
+              className={`flex-1 px-3 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
                 activeTab === "saved"
                   ? "bg-brand-accent text-brand-bg shadow-md shadow-cyan-500/10"
                   : "text-brand-muted hover:text-white"
               }`}
             >
-              Saved Deck
+              Saved
             </button>
           </div>
         )}
 
-        <div className="flex items-center gap-4">
+        {/* Desktop nav */}
+        <div className="hidden md:flex items-center justify-between gap-4 w-full">
+          <div>
+            <h1 className="text-2xl font-bold tracking-wider font-mono text-white">
+              TESSER<span className="text-brand-accent">IO</span>
+            </h1>
+            <p className="text-brand-muted text-xs mt-1">
+              Visual Discovery & Media Graph Platform
+            </p>
+          </div>
+
           {user && (
-            <>
+            <div className="flex bg-white/5 p-1 rounded-full border border-white/5 font-mono text-xs">
               <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-white/5 hover:bg-white/10 text-white font-medium text-xs px-4 py-2 rounded-full border border-white/10 transition-colors cursor-pointer"
+                onClick={() => setActiveTab("feed")}
+                className={`px-5 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
+                  activeTab === "feed"
+                    ? "bg-brand-accent text-brand-bg shadow-md shadow-cyan-500/10"
+                    : "text-brand-muted hover:text-white"
+                }`}
               >
-                + Create Pin
+                Global Feed
               </button>
-
-              {/* User Identity Info Panel */}
-              <div className="flex items-center gap-3 bg-brand-surface/40 px-4 py-2 rounded-full border border-brand-surface">
-                {user.avatar && (
-                  <img
-                    src={
-                      user.avatar ||
-                      `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`
-                    }
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full border border-brand-accent/40 object-cover bg-neutral-900"
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`;
-                    }}
-                  />
-                )}
-                <div className="text-right hidden sm:block">
-                  <p className="text-xs font-semibold text-white tracking-wide">
-                    {user.name}
-                  </p>
-                  <p className="text-[10px] text-brand-muted">{user.email}</p>
-                </div>
-              </div>
-
-              {/* Premium Integrated Logout Action Button */}
               <button
-                onClick={handleLogout}
-                className="text-[10px] font-mono text-red-400 hover:text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 hover:border-red-500/20 px-3 py-2 rounded-full uppercase transition-all duration-150 cursor-pointer"
+                onClick={() => setActiveTab("saved")}
+                className={`px-5 py-2 rounded-full font-bold transition-all uppercase cursor-pointer ${
+                  activeTab === "saved"
+                    ? "bg-brand-accent text-brand-bg shadow-md shadow-cyan-500/10"
+                    : "text-brand-muted hover:text-white"
+                }`}
               >
-                Logout
+                Saved Deck
               </button>
-            </>
+            </div>
           )}
+
+          <div className="flex items-center gap-4">
+            {user && (
+              <>
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-white/5 hover:bg-white/10 text-white font-medium text-xs px-4 py-2 rounded-full border border-white/10 transition-colors cursor-pointer"
+                >
+                  + Create Pin
+                </button>
+
+                <div className="flex items-center gap-3 bg-brand-surface/40 px-4 py-2 rounded-full border border-brand-surface">
+                  {user.avatar && (
+                    <img
+                      src={
+                        user.avatar ||
+                        `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`
+                      }
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full border border-brand-accent/40 object-cover bg-neutral-900"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src =
+                          `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`;
+                      }}
+                    />
+                  )}
+                  <div className="text-right">
+                    <p className="text-xs font-semibold text-white tracking-wide">
+                      {user.name}
+                    </p>
+                    <p className="text-[10px] text-brand-muted">{user.email}</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="text-[10px] font-mono text-red-400 hover:text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 hover:border-red-500/20 px-3 py-2 rounded-full uppercase transition-all duration-150 cursor-pointer"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </header>
+
+      {/* Mobile FAB — create pin */}
+      {user && (
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="md:hidden fixed bottom-5 right-4 z-40 w-12 h-12 rounded-full bg-brand-accent text-brand-bg font-bold text-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center cursor-pointer"
+          aria-label="Create pin"
+        >
+          +
+        </button>
+      )}
 
       {/* Main Grid Sector */}
       <section className="w-full text-left block clear-both grow">
