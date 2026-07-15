@@ -6,15 +6,17 @@ const User = require("../models/User");
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-// CRITICAL: Never use a relative path here.
-// Relative paths get reconstructed by passport using req.protocol + req.hostname.
-// Behind Railway's reverse proxy, even with trust proxy enabled, this can
-// produce http:// URLs that Google's OAuth2 server rejects with "Bad Request".
-// Always resolve to an absolute HTTPS URL in production.
+// CRITICAL: The callback URL must go through Vercel's proxy domain.
+// Google redirects the browser to this URL after authentication.
+// If it points to Railway directly, the Set-Cookie header sets the cookie
+// on tesserio.up.railway.app. But the frontend is on tesserio.vercel.app,
+// so the browser treats it as a third-party cookie and blocks it.
+// By routing through Vercel's proxy, the cookie is set on tesserio.vercel.app
+// (same domain as the frontend) and all subsequent /api/* calls include it.
 const googleCallbackUrl =
   process.env.GOOGLE_CALLBACK_URL ||
   (process.env.NODE_ENV === "production"
-    ? "https://tesserio.up.railway.app/api/auth/google/callback"
+    ? "https://tesserio.vercel.app/api/auth/google/callback"
     : "http://localhost:5000/api/auth/google/callback");
 
 if (googleClientId && googleClientSecret) {

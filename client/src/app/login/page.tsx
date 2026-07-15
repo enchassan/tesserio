@@ -27,7 +27,7 @@ export default function LoginPage() {
     const apiBaseUrl =
       process.env.NEXT_PUBLIC_API_URL ||
       (process.env.NODE_ENV === "production"
-        ? "https://tesserio.up.railway.app/api"
+        ? "/api"
         : "http://localhost:5000/api");
     const oauthUrl = `${apiBaseUrl}/auth/google`;
     window.location.href = oauthUrl;

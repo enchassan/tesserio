@@ -1,12 +1,13 @@
 // client/src/lib/api.ts
 import axios from "axios";
 
-// Point directly to the Railway backend domain in production to bypass Vercel's proxy rewrite layer.
-// This allows cookies with sameSite: "none" and secure: true to be sent directly to the backend.
+// Use Vercel's rewrite proxy (/api/* → Railway) so all requests are same-origin.
+// This ensures cookies set by the backend are stored on the Vercel domain
+// and sent back automatically — no cross-domain cookie issues.
 const apiBaseUrl =
   process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === "production"
-    ? "https://tesserio.up.railway.app/api"
+    ? "/api"
     : "http://localhost:5000/api");
 
 export const api = axios.create({
