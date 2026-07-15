@@ -3,7 +3,6 @@ const express = require("express");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
-const { requireAuth } = require("../middleware/auth");
 
 // Dynamic environment routing
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
@@ -43,16 +42,6 @@ router.get(
     res.redirect(`${CLIENT_URL}/`); // DYNAMIC FIX
   },
 );
-
-// @desc    Get Current Logged-In User Profile State
-// @route   GET /api/auth/me
-// @access  Private (Guarded by requireAuth)
-router.get("/me", requireAuth, (req, res) => {
-  res.status(200).json({
-    status: "success",
-    user: req.user,
-  });
-});
 
 // @desc    Logout user and destroy session cookie
 // @route   GET /api/auth/logout
