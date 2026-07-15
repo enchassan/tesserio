@@ -8,8 +8,11 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/api/auth/google/callback",
-      proxy: true, // Allows handling if deployed behind a reverse proxy like Nginx or Vercel later
+      callbackURL:
+        process.env.NODE_ENV === "production"
+          ? "https://tesserio.up.railway.app/api/auth/google/callback"
+          : "/api/auth/google/callback",
+      proxy: true,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
