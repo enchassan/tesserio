@@ -3,6 +3,10 @@ const express = require("express");
 const passport = require("passport");
 const jwt = require("jsonwebtoken");
 const router = express.Router();
+const { requireAuth } = require("../middleware/auth");
+
+// Dynamic environment routing
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
 // @desc    Initiate Google OAuth Handshake
 // @route   GET /api/auth/google
@@ -16,7 +20,7 @@ router.get(
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:3000/login",
+    failureRedirect: `${CLIENT_URL}/login`, // DYNAMIC FIX
     session: false,
   }),
   (req, res) => {
@@ -36,23 +40,9 @@ router.get(
     });
 
     // Safe landing redirection straight back to your Next.js client canvas dashboard
-    res.redirect("http://localhost:3000/");
+    res.redirect(`${CLIENT_URL}/`); // DYNAMIC FIX
   },
 );
-
-// @desc    Secure Log Out / Purge Authentication Cookie
-// @route   POST /api/auth/logout
-router.get("/logout", (req, res) => {
-  res.clearCookie("token");
-  res
-    .status(200)
-    .json({ status: "success", message: "Session successfully terminated" });
-});
-
-// Add this to server/src/routes/auth.js
-
-// Import the guard middleware we just wrote at the top of the file
-const { requireAuth } = require("../middleware/auth");
 
 // @desc    Get Current Logged-In User Profile State
 // @route   GET /api/auth/me
@@ -65,10 +55,10 @@ router.get("/me", requireAuth, (req, res) => {
 });
 
 // @desc    Logout user and destroy session cookie
-// @route   GET /auth/logout
+// @route   GET /api/auth/logout
 // @access  Private
 router.get("/logout", (req, res) => {
-  // Clear the JWT or session cookie
+  // Clear the JWT or session cookie cleanly
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -80,4 +70,5 @@ router.get("/logout", (req, res) => {
     message: "Platform session cleared cleanly.",
   });
 });
+
 module.exports = router;
