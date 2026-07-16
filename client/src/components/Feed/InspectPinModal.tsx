@@ -305,8 +305,7 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
                 {pin.title}
               </h2>
               <p className="text-xs text-brand-muted leading-relaxed font-sans pt-1">
-                {pin.description ||
-                  "No descriptive structural metadata provided for this cluster asset node."}
+                {pin.description || "No description provided."}
               </p>
             </div>
 
@@ -399,7 +398,7 @@ export const InspectPinModal: React.FC<InspectPinModalProps> = ({
                                       }}
                                       className="w-full text-left px-3 py-1.5 text-red-400 hover:bg-red-500/10 hover:text-red-500 transition-colors flex items-center gap-1 cursor-pointer font-bold"
                                     >
-                                      Delete Log
+                                      Delete
                                     </button>
                                   </div>
                                 )}
