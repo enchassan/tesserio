@@ -101,26 +101,6 @@ export default function HomePage() {
             TESSER<span className="text-brand-accent">IO</span>
           </h1>
 
-          <button
-            type="button"
-            aria-label="Search"
-            className="p-2 text-brand-muted hover:text-white transition-colors"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </button>
-
           {user && (
             <img
               src={
