@@ -125,60 +125,60 @@ export const CreatePinModal: React.FC<CreatePinModalProps> = ({
           </div>
 
           <div className="order-last flex flex-col gap-4">
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-semibold">
-              Pin Title *
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-brand-bg/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-accent transition-colors"
-              placeholder="e.g., Anamorphic Cinematography Frame"
-            />
-          </div>
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-semibold">
+                Pin Title *
+              </label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full bg-brand-bg/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-accent transition-colors"
+                placeholder="e.g., Anamorphic Cinematography Frame"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-semibold">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-brand-bg/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-accent transition-colors h-20 resize-none"
-              placeholder="Provide context or production asset source metadata..."
-            />
-          </div>
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-semibold">
+                Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full bg-brand-bg/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-accent transition-colors h-20 resize-none"
+                placeholder="Provide context or production asset source metadata..."
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-semibold">
-              Media File URL *
-            </label>
-            <input
-              type="url"
-              value={mediaUrl}
-              onChange={(e) => setMediaUrl(e.target.value)}
-              className="w-full bg-brand-bg/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-accent transition-colors"
-              placeholder="https://images.unsplash.com/..."
-            />
-          </div>
+            <div>
+              <label className="block text-xs uppercase tracking-wider text-brand-muted mb-1.5 font-semibold">
+                Media File URL *
+              </label>
+              <input
+                type="url"
+                value={mediaUrl}
+                onChange={(e) => setMediaUrl(e.target.value)}
+                className="w-full bg-brand-bg/80 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-accent transition-colors"
+                placeholder="https://images.unsplash.com/..."
+              />
+            </div>
 
-          <div className="flex items-center justify-between p-3 bg-brand-bg/40 rounded-xl border border-white/5">
-            <span className="text-[10px] text-brand-muted uppercase tracking-widest font-mono">
-              Detected Aspect Ratio
-            </span>
-            <span className="text-[11px] text-brand-accent font-bold font-mono">
-              {aspectRatio.toFixed(2)}
-            </span>
-          </div>
+            <div className="flex items-center justify-between p-3 bg-brand-bg/40 rounded-xl border border-white/5">
+              <span className="text-[10px] text-brand-muted uppercase tracking-widest font-mono">
+                Detected Aspect Ratio
+              </span>
+              <span className="text-[11px] text-brand-accent font-bold font-mono">
+                {aspectRatio.toFixed(2)}
+              </span>
+            </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full mt-1 md:mt-2 bg-brand-accent hover:bg-cyan-400 disabled:bg-cyan-800 disabled:cursor-not-allowed text-brand-bg font-bold text-xs uppercase py-3 rounded-xl transition-all tracking-widest shadow-lg shadow-cyan-500/5"
-          >
-            {submitting ? "COMMITTING ASSET..." : "PUBLISH PIN"}
-          </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full mt-1 md:mt-2 bg-brand-accent hover:bg-cyan-400 disabled:bg-cyan-800 disabled:cursor-not-allowed text-brand-bg font-bold text-xs uppercase py-3 rounded-xl transition-all tracking-widest shadow-lg shadow-cyan-500/5"
+            >
+              {submitting ? "COMMITTING ASSET..." : "PUBLISH PIN"}
+            </button>
           </div>
         </form>
       </div>
