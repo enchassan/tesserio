@@ -24,6 +24,8 @@ export default function HomePage() {
   const [selectedPin, setSelectedPin] = useState<any>(null);
   const [isInspectOpen, setIsInspectOpen] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] =
+    useState<boolean>(false);
 
   // Track which tab workspace frame is currently active
   const [activeTab, setActiveTab] = useState<"feed" | "saved">("feed");
@@ -102,19 +104,40 @@ export default function HomePage() {
           </h1>
 
           {user && (
-            <img
-              src={
-                user.avatar ||
-                `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`
-              }
-              alt={user.name}
-              className="w-8 h-8 rounded-full border border-brand-accent/40 object-cover bg-neutral-900 shrink-0"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`;
+            <div
+              className="relative cursor-pointer outline-none"
+              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+              onBlur={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  setIsProfileDropdownOpen(false);
+                }
               }}
-            />
+              tabIndex={0}
+            >
+              <img
+                src={
+                  user.avatar ||
+                  `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`
+                }
+                alt={user.name}
+                className="w-8 h-8 rounded-full border border-brand-accent/40 object-cover bg-neutral-900 shrink-0"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`;
+                }}
+              />
+              {isProfileDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 md:w-48 bg-[#18181c] border border-gray-800 rounded-2xl shadow-2xl py-2 z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-5 py-3 md:px-4 md:py-2.5 text-base md:text-sm text-red-500 hover:bg-red-500/10 active:bg-red-500/20 flex items-center gap-2 transition-colors duration-150 font-medium cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
@@ -182,60 +205,54 @@ export default function HomePage() {
 
           <div className="flex items-center gap-4">
             {user && (
-              <>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="bg-white/5 hover:bg-white/10 text-white font-medium text-xs px-4 py-2 rounded-full border border-white/10 transition-colors cursor-pointer"
-                >
-                  + Create Pin
-                </button>
-
-                <div className="flex items-center gap-3 bg-brand-surface/40 px-4 py-2 rounded-full border border-brand-surface">
-                  {user.avatar && (
-                    <img
-                      src={
-                        user.avatar ||
-                        `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`
-                      }
-                      alt={user.name}
-                      className="w-8 h-8 rounded-full border border-brand-accent/40 object-cover bg-neutral-900"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`;
-                      }}
-                    />
-                  )}
-                  <div className="text-right">
-                    <p className="text-xs font-semibold text-white tracking-wide">
-                      {user.name}
-                    </p>
-                    <p className="text-[10px] text-brand-muted">{user.email}</p>
-                  </div>
+              <div
+                className="relative flex items-center gap-3 bg-[#18181c] border border-gray-800 p-2 rounded-full cursor-pointer select-none hover:bg-gray-800/50 transition-colors"
+                onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+                onBlur={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setIsProfileDropdownOpen(false);
+                  }
+                }}
+                tabIndex={0}
+              >
+                {user.avatar && (
+                  <img
+                    src={
+                      user.avatar ||
+                      `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`
+                    }
+                    alt={user.name}
+                    className="w-8 h-8 rounded-full border border-brand-accent/40 object-cover bg-neutral-900"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src =
+                        `https://ui-avatars.com/api/?name=${user.name}&background=151B22&color=06b6d4`;
+                    }}
+                  />
+                )}
+                <div className="text-right">
+                  <p className="text-xs font-semibold text-white tracking-wide">
+                    {user.name}
+                  </p>
+                  <p className="text-[10px] text-brand-muted">{user.email}</p>
                 </div>
+                <span className="text-gray-400 text-xs mr-2">▼</span>
 
-                <button
-                  onClick={handleLogout}
-                  className="text-[10px] font-mono text-red-400 hover:text-red-500 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 hover:border-red-500/20 px-3 py-2 rounded-full uppercase transition-all duration-150 cursor-pointer"
-                >
-                  Logout
-                </button>
-              </>
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 md:w-48 bg-[#18181c] border border-gray-800 rounded-2xl shadow-2xl py-2 z-50 overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150">
+                    <button
+                      onClick={handleLogout}
+                      className="w-full text-left px-5 py-3 md:px-4 md:py-2.5 text-base md:text-sm text-red-500 hover:bg-red-500/10 active:bg-red-500/20 flex items-center gap-2 transition-colors duration-150 font-medium cursor-pointer"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
       </header>
-
-      {/* Mobile FAB — create pin */}
-      {user && (
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="md:hidden fixed bottom-5 right-4 z-40 w-12 h-12 rounded-full bg-brand-accent text-brand-bg font-bold text-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center cursor-pointer"
-          aria-label="Create pin"
-        >
-          +
-        </button>
-      )}
 
       {/* Main Grid Sector */}
       <section className="w-full text-left block clear-both grow">
@@ -272,6 +289,16 @@ export default function HomePage() {
           handleRefreshFeed();
         }}
       />
+
+      {user && (
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="fixed bottom-6 right-6 z-50 flex items-center justify-center w-14 h-14 bg-[#57ebd9] text-black rounded-full shadow-xl hover:scale-110 active:scale-95 transition-transform duration-200"
+          aria-label="Create Pin"
+        >
+          <span className="text-3xl font-light -mt-1">+</span>
+        </button>
+      )}
     </main>
   );
 }
